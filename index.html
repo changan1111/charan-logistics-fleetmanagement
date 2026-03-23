@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vehicle P&L Tracker — Production</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg:#09090d; --surface:#101018; --card:#14141e; --border:#1f1f2e;
+    --accent:#f0a500; --accent-dim:#f0a50018;
+    --green:#22c55e; --green-dim:#22c55e18;
+    --red:#ef4444;   --red-dim:#ef444418;
+    --muted:#52526a; --text:#e4e4f0;
+    --kaira:#f59e0b; --jit:#06b6d4; --other:#a78bfa;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;font-size:14px}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:var(--surface)}
+  ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* ── Header ── */
+  #app-header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+  .header-inner{max-width:960px;margin:0 auto;padding:0 20px}
+  .header-top{display:flex;align-items:center;justify-content:space-between;padding:16px 0 0;flex-wrap:wrap;gap:10px}
+  .header-brand .sub{font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px}
+  .header-brand h1{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+  .client-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.5px}
+  .pill-kaira{background:#f59e0b22;color:var(--kaira);border:1px solid #f59e0b44}
+  .pill-jit{background:#06b6d422;color:var(--jit);border:1px solid #06b6d444}
+  .pill-other{background:#a78bfa22;color:var(--other);border:1px solid #a78bfa44}
+  .tabs{display:flex;gap:0;margin-top:14px;overflow-x:auto}
+  .tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;padding:10px 14px;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* ── Main ── */
+  .main{max-width:960px;margin:0 auto;padding:28px 20px 80px}
+  .page{display:none;animation:fadeUp .3s ease}
+  .page.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── Forms ── */
+  .label{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+  .input,.select,.textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-family:'Syne',sans-serif;font-size:14px;transition:border-color .2s;outline:none}
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--accent)}
+  .select option{background:#1a1a2e}
+  .textarea{resize:vertical}
+  .field{margin-bottom:14px}
+  .type-toggle{display:flex;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:24px;border:1px solid var(--border)}
+  .type-btn{flex:1;padding:10px 0;border:1px solid transparent;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted)}
+  .type-btn.earn-active{background:var(--green-dim);color:var(--green);border-color:#22c55e44}
+  .type-btn.exp-active{background:var(--red-dim);color:var(--red);border-color:#ef444444}
+  .btn-save{width:100%;padding:14px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;margin-top:6px}
+  .btn-save:active{transform:scale(.98)}
+  .btn-save.earn{background:var(--green);color:#000}
+  .btn-save.exp{background:var(--red);color:#fff}
+  .toast{padding:12px 16px;border-radius:8px;font-size:13px;text-align:center;margin-top:12px;display:none}
+  .toast.ok{background:var(--green-dim);color:var(--green);border:1px solid #22c55e44}
+  .toast.err{background:var(--red-dim);color:var(--red);border:1px solid #ef444444}
+
+  /* ── Stat / Section cards ── */
+  .stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .stat-card{flex:1;min-width:130px;background:var(--card);border-radius:12px;padding:16px 18px;border:1px solid var(--border)}
+  .stat-card .slabel{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+  .stat-card .sval{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700}
+  .stat-card .ssub{font-size:10px;color:var(--muted);margin-top:4px}
+  .section-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+  .section-title{font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:14px}
+  .client-grid{display:flex;gap:10px;flex-wrap:wrap}
+  .client-box{flex:1;min-width:110px;background:var(--surface);border-radius:10px;padding:14px;border:1px solid transparent}
+  .client-box .clabel{font-size:11px;font-weight:700;margin-bottom:6px}
+  .client-box .cpct{font-size:10px;color:var(--muted);float:right}
+  .client-box .cval{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700}
+  .client-box .cbar-bg{height:4px;background:var(--border);border-radius:2px;margin-top:8px}
+  .client-box .cbar{height:4px;border-radius:2px;transition:width .5s ease}
+  .exp-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .exp-name{font-size:12px;color:var(--text);width:170px;flex-shrink:0}
+  .exp-bar-bg{flex:1;height:6px;background:var(--border);border-radius:3px}
+  .exp-bar{height:6px;border-radius:3px;background:var(--red);transition:width .5s}
+  .exp-amt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--red);width:90px;text-align:right}
+
+  /* ── Day cards ── */
+  .day-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  .day-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+  .day-label{font-size:13px;font-weight:700;color:var(--accent)}
+  .day-amounts{display:flex;gap:12px;align-items:center}
+  .day-body{padding:6px 16px 10px}
+  .entry-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #1f1f2e33}
+  .entry-row:last-child{border-bottom:none}
+  .dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+  .entry-info{flex:1}
+  .entry-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .entry-note{font-size:11px;color:var(--muted);margin-top:2px}
+  .entry-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;white-space:nowrap}
+  .client-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.3px}
+  .exp-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--red-dim);color:var(--red);border:1px solid #ef444433}
+
+  /* ── Dashboard table ── */
+  .dtable-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{padding:10px 12px;font-size:10px;color:var(--muted);text-align:left;letter-spacing:.5px;text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--border);background:var(--surface)}
+  td{padding:11px 12px;font-size:12px;border-bottom:1px solid #1f1f2e44}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#ffffff05}
+
+  /* ── Charts tab ── */
+  .chart-controls{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end}
+  .chart-controls .field{margin-bottom:0;flex:1;min-width:140px}
+  .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+  .chart-wrap canvas{max-height:280px}
+  .chart-title{font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+  .chart-sub{font-size:10px;color:var(--muted);margin-bottom:14px}
+  .v-tab-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .v-tab{padding:6px 13px;border-radius:6px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+  .v-tab.active{background:var(--accent-dim);color:var(--accent);border-color:#f0a50055}
+  .trend-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700}
+  .t-up{background:var(--green-dim);color:var(--green)}
+  .t-dn{background:var(--red-dim);color:var(--red)}
+  .t-fl{background:#1f1f2e;color:var(--muted)}
+  .compare-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:20px}
+  .compare-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .compare-card .cv-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+  .compare-card canvas{max-height:150px}
+
+  /* ── Modal ── */
+  .modal-overlay{position:fixed;inset:0;background:#000000cc;z-index:999;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:480px;animation:fadeUp .25s ease;max-height:90vh;overflow-y:auto}
+  .modal h2{font-size:18px;font-weight:800;margin-bottom:6px}
+  .modal p{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+  .config-btns{display:flex;gap:10px;margin-top:16px}
+  .btn-outline{flex:1;padding:11px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;font-weight:600;transition:border-color .2s,color .2s}
+  .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-primary{flex:1;padding:11px;background:var(--accent);border:none;border-radius:8px;color:#000;font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;font-weight:700}
+  .cfg-btn{position:fixed;bottom:20px;right:20px;background:var(--accent);color:#000;border:none;border-radius:50%;width:46px;height:46px;font-size:18px;cursor:pointer;box-shadow:0 4px 20px #f0a50055;z-index:50;transition:transform .2s}
+  .cfg-btn:hover{transform:scale(1.1)}
+  .no-data{text-align:center;color:var(--muted);padding:50px 0;font-size:13px}
+  .setup-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:28px}
+
+  /* ── Cash on Hand tab ── */
+  .cash-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media(max-width:700px){.cash-layout{grid-template-columns:1fr}}
+  .cash-form-card{background:var(--card);border:1px solid #06b6d433;border-radius:14px;padding:22px;position:sticky;top:80px}
+  .cash-form-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:18px}
+  .cash-ledger{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .cash-ledger-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+  .cash-ledger-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+  .cash-month-filters{display:flex;gap:8px}
+  .cash-month-filters select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 10px;font-family:'Syne',sans-serif;font-size:11px;outline:none}
+  .cash-summary-strip{display:flex;gap:0;border-bottom:1px solid var(--border)}
+  .cash-summary-cell{flex:1;padding:12px 16px;border-right:1px solid var(--border)}
+  .cash-summary-cell:last-child{border-right:none}
+  .cash-summary-cell .csc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:600}
+  .cash-summary-cell .csc-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}
+  .cash-entry-row{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid #1f1f2e55;transition:background .15s}
+  .cash-entry-row:last-child{border-bottom:none}
+  .cash-entry-row:hover{background:#ffffff04}
+  .cash-date-col{width:54px;flex-shrink:0;text-align:center}
+  .cash-date-day{font-size:20px;font-weight:800;color:var(--accent);line-height:1;font-family:'JetBrains Mono',monospace}
+  .cash-date-mon{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .cash-body{flex:1}
+  .cash-type-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;margin-bottom:4px}
+  .cash-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px}
+  .cash-amt{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;white-space:nowrap;color:#06b6d4}
+  .cash-running{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;text-align:right}
+  .btn-cash-save{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;background:#06b6d4;color:#000;transition:opacity .2s,transform .1s;margin-top:6px}
+  .btn-cash-save:active{transform:scale(.98)}
+  .btn-cash-save:disabled{opacity:.5}
+  .cash-empty{text-align:center;color:var(--muted);padding:40px 0;font-size:13px}
+  .salary-box{background:var(--surface);border:1px solid #06b6d433;border-radius:10px;padding:14px 18px;margin:0 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .salary-box .sb-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .salary-box .sb-note{font-size:11px;color:var(--muted);margin-top:2px}
+
+  @media(max-width:540px){
+    .header-brand h1{font-size:17px}
+    .tab-btn{padding:10px 8px;font-size:11px}
+    .stat-card .sval{font-size:16px}
+    .exp-name{width:100px}
+    th,td{padding:8px;font-size:11px}
+    .compare-grid{grid-template-columns:1fr}
+  }
+
+  /* ── User badge in header ── */
+  .user-badge{display:flex;align-items:center;gap:8px}
+  .user-email{font-size:10px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .btn-logout{padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-logout:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- No config modal in production — credentials are hardcoded in JS below -->
+
+<!-- App Header -->
+<div id="app-header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-brand">
+        <div class="sub">Fleet Management</div>
+        <h1>Vehicle P&amp;L Tracker</h1>
+      </div>
+      <div class="user-badge"><span class="user-email" id="userEmail"></span><button class="btn-logout" onclick="signOut()">Sign Out</button></div>
+      <div class="client-pills">
+        <span class="pill pill-kaira">● KAIRA</span>
+        <span class="pill pill-jit">● JIT</span>
+        <span class="pill pill-other">● OTHERS</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="add">➕ Add Entry</button>
+      <button class="tab-btn" data-tab="history">📋 History</button>
+      <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab-btn" data-tab="charts">📈 Charts</button>
+      <button class="tab-btn" data-tab="cash">💵 Cash on Hand</button>
+      <button class="tab-btn" data-tab="vehicles">🚛 Vehicles</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ ADD ENTRY ══ -->
+  <div class="page active" id="page-add">
+    <div style="max-width:520px;margin:0 auto">
+      <div class="type-toggle">
+        <button class="type-btn earn-active" id="typeEarn" onclick="setType('earning')">⬆ Earning</button>
+        <button class="type-btn" id="typeExp"  onclick="setType('expense')">⬇ Expense</button>
+      </div>
+      <div class="field">
+        <label class="label">Vehicle Number</label>
+        <select class="select" id="addVehicle"></select>
+      </div>
+      <div class="field">
+        <label class="label">Date</label>
+        <input type="date" class="input" id="addDate"/>
+      </div>
+      <div class="field">
+        <label class="label">Amount (S$)</label>
+        <input type="number" class="input mono" id="addAmount" placeholder="0.00" style="font-size:20px;font-weight:700;color:var(--green)"/>
+      </div>
+      <div class="field" id="expTypeField" style="display:none">
+        <label class="label">Expense Category</label>
+        <select class="select" id="addExpType">
+          <option>Toll</option><option>Parking</option><option>Fuel</option>
+          <option>Vehicle FC/Registration</option><option>Medical</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" id="noteLabel">Notes (mention KAIRA / JIT if applicable)</label>
+        <textarea class="textarea" id="addNote" rows="3" placeholder="e.g. KAIRA delivery Mumbai..."></textarea>
+        <div id="clientDetect" style="margin-top:6px;display:none;align-items:center;gap:6px;font-size:11px;color:var(--muted)">
+          Auto-detected: <span id="detectedBadge"></span>
+        </div>
+      </div>
+      <button class="btn-save earn" id="saveBtn" onclick="saveEntry()">Save Earning</button>
+      <div class="toast" id="addToast"></div>
+      <div class="setup-box" style="border-color:#f0a50033">
+        <div style="font-size:10px;color:var(--accent);letter-spacing:1px;font-weight:700">🚛 FLEET CONFIG</div>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.8">
+          Vehicles are managed from the database.<br>
+          Go to the <b style="color:var(--accent)">Vehicles</b> tab to add, edit or deactivate vehicles.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORY ══ -->
+  <div class="page" id="page-history">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      <select class="select" id="histVehicle" style="flex:2;min-width:150px" onchange="loadHistory()"><option value="">Select Vehicle</option></select>
+      <select class="select" id="histMonth"   style="flex:1;min-width:110px" onchange="loadHistory()"></select>
+      <select class="select" id="histYear"    style="flex:1;min-width:80px"  onchange="loadHistory()"></select>
+    </div>
+    <div id="histContent"><div class="no-data">← Select a vehicle to view history</div></div>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page" id="page-dashboard">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+      <select class="select" id="dashMonth" style="flex:1;min-width:110px" onchange="loadDashboard()"></select>
+      <select class="select" id="dashYear"  style="flex:1;min-width:80px"  onchange="loadDashboard()"></select>
+    </div>
+    <div id="dashContent"><div class="no-data">Loading...</div></div>
+  </div>
+
+  <!-- ══ CHARTS ══ -->
+  <div class="page" id="page-charts">
+    <div class="chart-controls">
+      <div class="field">
+        <label class="label">Year</label>
+        <select class="select" id="chartYear" onchange="loadCharts()"></select>
+      </div>
+      <div class="field">
+        <label class="label">View Mode</label>
+        <select class="select" id="chartView" onchange="loadCharts()">
+          <option value="individual">Per Vehicle — Month-wise</option>
+          <option value="compare">Compare All Vehicles</option>
+          <option value="clients">Client Earnings Trend</option>
+        </select>
+      </div>
+    </div>
+    <div class="v-tab-strip" id="vTabStrip"></div>
+    <div id="chartsContent"><div class="no-data">Select a view to load charts</div></div>
+  </div>
+
+  <!-- ══ CASH ON HAND ══ -->
+  <div class="page" id="page-cash">
+    <div class="cash-layout">
+
+      <!-- Left: Add form -->
+      <div class="cash-form-card">
+        <div class="cash-form-title">💵 Record Cash Payment</div>
+        <div class="field">
+          <label class="label">Cash Type</label>
+          <select class="select" id="cashType">
+            <option value="Petty Cash">Petty Cash</option>
+            <option value="Cash Order">Cash Order</option>
+            <option value="Advance Salary">Advance Salary</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Date</label>
+          <input type="date" class="input" id="cashDate"/>
+        </div>
+        <div class="field">
+          <label class="label">Amount (S$)</label>
+          <input type="number" class="input mono" id="cashAmount" placeholder="0.00" style="font-size:20px;font-weight:700;color:#06b6d4"/>
+        </div>
+        <div class="field">
+          <label class="label">Notes / Purpose</label>
+          <textarea class="textarea" id="cashNote" rows="3" placeholder="e.g. Advance to Raju driver, petrol advance..."></textarea>
+        </div>
+        <button class="btn-cash-save" id="cashSaveBtn" onclick="saveCash()">Record Cash Payment</button>
+        <div class="toast" id="cashToast"></div>
+
+        <!-- Salary adjustment hint box -->
+        <div style="margin-top:16px;background:var(--bg);border:1px solid #06b6d422;border-radius:10px;padding:14px">
+          <div style="font-size:10px;color:#06b6d4;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px">How Salary Adjustment Works</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.8">
+            • Every cash paid out is recorded here<br>
+            • At month end, sum all cash entries<br>
+            • <b style="color:var(--text)">Net Salary = Gross Salary − Total Cash Paid</b><br>
+            • Use the ledger filter to pick month &amp; see exactly what to deduct
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Ledger -->
+      <div>
+        <div class="cash-ledger">
+          <div class="cash-ledger-header">
+            <span class="cash-ledger-title">Cash Ledger</span>
+            <div class="cash-month-filters">
+              <select id="cashMonth" onchange="loadCash()"></select>
+              <select id="cashYear"  onchange="loadCash()"></select>
+            </div>
+          </div>
+
+          <!-- Summary strip -->
+          <div class="cash-summary-strip" id="cashSummaryStrip">
+            <div class="cash-summary-cell">
+              <div class="csc-label">Total Paid Out</div>
+              <div class="csc-val" style="color:#06b6d4">S$0.00</div>
+            </div>
+            <div class="cash-summary-cell">
+              <div class="csc-label">Petty Cash</div>
+              <div class="csc-val" style="color:var(--kaira)">S$0.00</div>
+            </div>
+            <div class="cash-summary-cell">
+              <div class="csc-label">Cash Orders</div>
+              <div class="csc-val" style="color:var(--other)">S$0.00</div>
+            </div>
+            <div class="cash-summary-cell">
+              <div class="csc-label">Advances</div>
+              <div class="csc-val" style="color:var(--green)">S$0.00</div>
+            </div>
+          </div>
+
+          <!-- Salary box -->
+          <div style="padding:12px 18px;border-bottom:1px solid var(--border)" id="cashSalaryBox" style="display:none">
+            <div class="salary-box">
+              <div>
+                <div class="sb-label">Salary Adjustment This Month</div>
+                <div class="sb-note">Deduct total cash paid from gross salary</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Total to deduct</div>
+                <div class="mono" style="font-size:22px;font-weight:800;color:#06b6d4" id="cashDeductTotal">S$0.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entries -->
+          <div id="cashEntries"><div class="cash-empty">No cash entries this month.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ VEHICLES ══ -->
+  <div class="page" id="page-vehicles">
+    <div style="max-width:600px;margin:0 auto">
+      <!-- Add vehicle form -->
+      <div class="section-card" style="border-color:#f0a50033;margin-bottom:20px">
+        <div class="section-title">➕ Add New Vehicle</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="flex:2;min-width:160px;margin-bottom:0">
+            <label class="label">Vehicle Number</label>
+            <input class="input mono" id="vehNumber" placeholder="e.g. MH01AB1234" style="text-transform:uppercase"/>
+          </div>
+          <div class="field" style="flex:2;min-width:160px;margin-bottom:0">
+            <label class="label">Label / Driver (optional)</label>
+            <input class="input" id="vehLabel" placeholder="e.g. Raju — Tata 407"/>
+          </div>
+          <div style="flex-shrink:0">
+            <button onclick="addVehicle()"
+              style="padding:10px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">
+              Add Vehicle
+            </button>
+          </div>
+        </div>
+        <div class="toast" id="vehToast" style="margin-top:10px"></div>
+      </div>
+      <!-- Vehicle list -->
+      <div class="section-card" style="padding:0;overflow:hidden">
+        <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div class="section-title" style="margin-bottom:0">Fleet Vehicles</div>
+          <div id="vehCount" style="font-size:11px;color:var(--muted)">Loading...</div>
+        </div>
+        <div id="vehList"><div class="no-data" style="padding:40px 0">Loading vehicles...</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════
+const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_S     = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const VCOLS        = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  ⚙️  SUPABASE CONFIG — edit these two lines
+// ═══════════════════════════════════════════════
+const SB_URL     = "%%SUPABASE_URL%%";
+const SB_KEY = "%%SUPABASE_ANON_KEY%%";
+// Supabase Auth client (handles login + session JWT automatically)
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+let session = null; // set after auth guard confirms session
+
+/*
+  ── SUPABASE SQL SETUP (run once in SQL editor) ─────────────────────────────
+
+  CREATE TABLE earnings (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    vehicle TEXT NOT NULL, amount NUMERIC NOT NULL,
+    note TEXT DEFAULT '', date DATE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );
+  CREATE TABLE expenses (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    vehicle TEXT NOT NULL, amount NUMERIC NOT NULL,
+    expense_type TEXT NOT NULL, note TEXT DEFAULT '',
+    date DATE NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
+  );
+  CREATE TABLE cash_on_hand (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    cash_type TEXT NOT NULL, amount NUMERIC NOT NULL,
+    note TEXT DEFAULT '', date DATE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );
+
+  ALTER TABLE earnings     ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE expenses     ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE cash_on_hand ENABLE ROW LEVEL SECURITY;
+
+  -- Authenticated users only (requires Supabase Auth)
+  -- TO authenticated = must be logged in. USING/WITH CHECK (true) = full shared fleet access.
+  CREATE POLICY "auth_select_vehicles"  ON vehicles     FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "auth_insert_vehicles"  ON vehicles     FOR INSERT TO authenticated WITH CHECK (true);
+  CREATE POLICY "auth_update_vehicles"  ON vehicles     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+  CREATE POLICY "auth_delete_vehicles"  ON vehicles     FOR DELETE TO authenticated USING (true);
+
+  CREATE POLICY "auth_select_earnings"  ON earnings     FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "auth_insert_earnings"  ON earnings     FOR INSERT TO authenticated WITH CHECK (true);
+  CREATE POLICY "auth_update_earnings"  ON earnings     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+  CREATE POLICY "auth_delete_earnings"  ON earnings     FOR DELETE TO authenticated USING (true);
+
+  CREATE POLICY "auth_select_expenses"  ON expenses     FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "auth_insert_expenses"  ON expenses     FOR INSERT TO authenticated WITH CHECK (true);
+  CREATE POLICY "auth_update_expenses"  ON expenses     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+  CREATE POLICY "auth_delete_expenses"  ON expenses     FOR DELETE TO authenticated USING (true);
+
+  CREATE POLICY "auth_select_cash"      ON cash_on_hand FOR SELECT TO authenticated USING (true);
+  CREATE POLICY "auth_insert_cash"      ON cash_on_hand FOR INSERT TO authenticated WITH CHECK (true);
+  CREATE POLICY "auth_update_cash"      ON cash_on_hand FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+  CREATE POLICY "auth_delete_cash"      ON cash_on_hand FOR DELETE TO authenticated USING (true);
+
+  ────────────────────────────────────────────────────────────────────────────
+*/
+let DEMO_MODE = false; // always false in production
+let VEHICLES  = []; // loaded from DB on init
+let ENTRY_TYPE = 'earning';
+let activeVehicle = null;
+const CI = {}; // chart instances
+let demoE = [], demoX = [], demoCash = [], demoId = 1; // unused in production
+
+// ═══════════════════════════════════════════════
+//  DATA LAYER
+// ═══════════════════════════════════════════════
+async function sbGet(path) {
+  const token = session?.access_token || SB_KEY;
+  const r = await fetch(SB_URL + path, { headers:{ apikey:SB_KEY, Authorization:'Bearer '+token } });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(path, body) {
+  const r = await fetch(SB_URL + path, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', apikey:SB_KEY, Authorization:'Bearer '+(session?.access_token||SB_KEY), Prefer:'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(path, body) {
+  const r = await fetch(SB_URL + path, {
+    method:'PATCH',
+    headers:{ 'Content-Type':'application/json', apikey:SB_KEY, Authorization:'Bearer '+(session?.access_token||SB_KEY), Prefer:'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbDelete(path) {
+  const r = await fetch(SB_URL + path, {
+    method:'DELETE',
+    headers:{ apikey:SB_KEY, Authorization:'Bearer '+(session?.access_token||SB_KEY) }
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+async function insertRow(table, row) {
+  if (DEMO_MODE) {
+    const r = { id:demoId++, created_at:new Date().toISOString(), ...row };
+    (table==='earnings' ? demoE : demoX).push(r); return r;
+  }
+  const rows = await sbPost(`/rest/v1/${table}`, row); return rows[0];
+}
+async function getRows(table, vehicle, month, year) {
+  const ym = `${year}-${pad(month+1)}`;
+  if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.vehicle===vehicle && e.date.startsWith(ym));
+  return sbGet(`/rest/v1/${table}?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-31&order=date.asc`);
+}
+async function getAllRows(table, month, year) {
+  const ym = `${year}-${pad(month+1)}`;
+  if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(ym));
+  return sbGet(`/rest/v1/${table}?date=gte.${ym}-01&date=lte.${ym}-31`);
+}
+async function getYear(table, year) {
+  if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(String(year)));
+  return sbGet(`/rest/v1/${table}?date=gte.${year}-01-01&date=lte.${year}-12-31&order=date.asc`);
+}
+async function getCashRows(month, year) {
+  const ym = `${year}-${pad(month+1)}`;
+  if (DEMO_MODE) return demoCash.filter(e => e.date.startsWith(ym));
+  return sbGet(`/rest/v1/cash_on_hand?date=gte.${ym}-01&date=lte.${ym}-31&order=date.desc`);
+}
+async function insertCash(row) {
+  if (DEMO_MODE) {
+    const r = { id:demoId++, created_at:new Date().toISOString(), ...row };
+    demoCash.push(r); return r;
+  }
+  const rows = await sbPost(`/rest/v1/cash_on_hand`, row); return rows[0];
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+const pad  = n => String(n).padStart(2,'0');
+const fmt  = n => 'S$ '+Number(n||0).toLocaleString('en-SG',{minimumFractionDigits:2});
+const fmtK = n => n>=100000?'S$ '+(n/100000).toFixed(1)+'L': n>=1000?'S$ '+(n/1000).toFixed(1)+'K':'S$'+n;
+const todayStr = () => new Date().toISOString().slice(0,10);
+function detectClient(note='') {
+  const u=note.toUpperCase();
+  if(u.includes('KAIRA')) return 'KAIRA';
+  if(u.includes('JIT'))   return 'JIT';
+  return 'OTHER';
+}
+function clientBadge(c) {
+  const m={KAIRA:['var(--kaira)','#f59e0b33'],JIT:['var(--jit)','#06b6d433'],OTHER:['var(--other)','#a78bfa33']};
+  const [col,bg]=m[c]||m.OTHER;
+  return `<span class="client-tag" style="color:${col};background:${bg};border:1px solid ${col}55">${c}</span>`;
+}
+function toast(id,msg,ok) {
+  const el=document.getElementById(id);
+  el.textContent=(ok?'✓ ':'✗ ')+msg; el.className='toast '+(ok?'ok':'err'); el.style.display='block';
+  setTimeout(()=>el.style.display='none',3500);
+}
+function killChart(id) { if(CI[id]){CI[id].destroy();delete CI[id];} }
+
+// Chart.js theme defaults
+const CD = {
+  responsive:true, maintainAspectRatio:true,
+  plugins:{
+    legend:{ labels:{ color:'#e4e4f0', font:{family:"'Syne',sans-serif",size:11}, boxWidth:12, padding:14 } },
+    tooltip:{ backgroundColor:'#14141e', borderColor:'#1f1f2e', borderWidth:1,
+      titleColor:'#f0a500', bodyColor:'#e4e4f0', padding:10,
+      titleFont:{family:"'Syne',sans-serif",weight:'bold',size:12},
+      bodyFont:{family:"'JetBrains Mono',monospace",size:11},
+      callbacks:{ label: ctx=>' '+fmtK(ctx.raw) }
+    }
+  },
+  scales:{
+    x:{ ticks:{color:'#52526a',font:{family:"'Syne',sans-serif",size:10}}, grid:{color:'#1f1f2e'} },
+    y:{ ticks:{color:'#52526a',font:{family:"'JetBrains Mono',monospace",size:10},callback:v=>fmtK(v)}, grid:{color:'#1f1f2e'} }
+  }
+};
+
+// ═══════════════════════════════════════════════
+//  VEHICLES — DB-backed
+// ═══════════════════════════════════════════════
+async function loadVehiclesFromDB() {
+  if (DEMO_MODE) return; // demo uses hardcoded VEHICLES
+  try {
+    const rows = await sbGet('/rest/v1/vehicles?active=eq.true&order=created_at.asc');
+    VEHICLES = rows.map(r => r.number);
+    populateVehicleSelects();
+  } catch(e) { console.error('Could not load vehicles:', e.message); }
+}
+
+async function addVehicle() {
+  const num   = (document.getElementById('vehNumber').value || '').trim().toUpperCase();
+  const label = (document.getElementById('vehLabel').value  || '').trim();
+  if (!num) { toast('vehToast','Vehicle number is required.',false); return; }
+  try {
+    await sbPost('/rest/v1/vehicles', { number: num, label, active: true });
+    document.getElementById('vehNumber').value = '';
+    document.getElementById('vehLabel').value  = '';
+    toast('vehToast', `${num} added to fleet!`, true);
+    await loadVehiclesFromDB();
+    loadVehicleList();
+  } catch(e) { toast('vehToast', 'Error: ' + e.message, false); }
+}
+
+async function toggleVehicle(id, currentActive) {
+  try {
+    await sbPatch('/rest/v1/vehicles?id=eq.' + id, { active: !currentActive });
+    await loadVehiclesFromDB();
+    loadVehicleList();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function deleteVehicle(id, number) {
+  if (!confirm(`Remove ${number} from fleet?\nThis does NOT delete its earnings/expenses history.`)) return;
+  try {
+    await sbDelete('/rest/v1/vehicles?id=eq.' + id);
+    await loadVehiclesFromDB();
+    loadVehicleList();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function loadVehicleList() {
+  const el = document.getElementById('vehList');
+  const countEl = document.getElementById('vehCount');
+  if (!el) return;
+  el.innerHTML = '<div class="no-data" style="padding:30px 0">Loading...</div>';
+  try {
+    const rows = await sbGet('/rest/v1/vehicles?order=created_at.asc');
+    const active = rows.filter(r => r.active).length;
+    countEl.textContent = `${active} active · ${rows.length} total`;
+    if (!rows.length) { el.innerHTML = '<div class="no-data" style="padding:40px 0">No vehicles yet. Add one above.</div>'; return; }
+    el.innerHTML = rows.map(r => `
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #1f1f2e55;transition:background .15s" onmouseover="this.style.background='#ffffff05'" onmouseout="this.style.background=''">
+        <div style="width:10px;height:10px;border-radius:50%;background:${r.active?'var(--green)':'var(--muted)'};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="mono" style="font-size:14px;font-weight:700;color:${r.active?'var(--accent)':'var(--muted)'}">
+            ${r.number}
+            ${!r.active?'<span style="font-size:9px;background:#52526a22;color:var(--muted);border-radius:3px;padding:1px 6px;margin-left:6px;font-family:Syne,sans-serif">INACTIVE</span>':''}
+          </div>
+          ${r.label?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${r.label}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button onclick="toggleVehicle('${r.id}',${r.active})"
+            style="padding:5px 12px;border-radius:6px;border:1px solid ${r.active?'#ef444444':'#22c55e44'};background:${r.active?'var(--red-dim)':'var(--green-dim)'};color:${r.active?'var(--red)':'var(--green)'};font-family:Syne,sans-serif;font-size:11px;font-weight:700;cursor:pointer">
+            ${r.active ? 'Deactivate' : 'Activate'}
+          </button>
+          <button onclick="deleteVehicle('${r.id}','${r.number}')"
+            style="padding:5px 10px;border-radius:6px;border:1px solid #ef444433;background:transparent;color:var(--red);font-family:Syne,sans-serif;font-size:12px;cursor:pointer" title="Delete vehicle">✕</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="no-data" style="color:var(--red);padding:30px 0">Error: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  INIT SELECTS
+// ═══════════════════════════════════════════════
+function populateVehicleSelects() {
+  ['addVehicle','histVehicle'].forEach(id=>{
+    const el=document.getElementById(id); const cur=el.value;
+    el.innerHTML=(id==='histVehicle'?'<option value="">Select Vehicle</option>':'<option value="">Choose vehicle...</option>');
+    VEHICLES.forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
+    if(cur) el.value=cur;
+  });
+}
+function populateDateSelects() {
+  const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
+  ['histMonth','dashMonth'].forEach(id=>{ document.getElementById(id).innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join(''); });
+  ['histYear','dashYear','chartYear','cashYear'].forEach(id=>{ document.getElementById(id).innerHTML=[2024,2025,2026].map(yr=>`<option value="${yr}"${yr===y?' selected':''}>${yr}</option>`).join(''); });
+  // cash month
+  const cashMonEl = document.getElementById('cashMonth');
+  if (cashMonEl) cashMonEl.innerHTML = MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  ADD ENTRY
+// ═══════════════════════════════════════════════
+function setType(t) {
+  ENTRY_TYPE=t;
+  const ea=document.getElementById('typeEarn'),ex=document.getElementById('typeExp');
+  const amt=document.getElementById('addAmount'),btn=document.getElementById('saveBtn');
+  if(t==='earning'){
+    ea.className='type-btn earn-active';ex.className='type-btn';
+    amt.style.color='var(--green)';btn.className='btn-save earn';btn.textContent='Save Earning';
+    document.getElementById('expTypeField').style.display='none';
+    document.getElementById('noteLabel').textContent='Notes (mention KAIRA / JIT if applicable)';
+    document.getElementById('addNote').placeholder='e.g. KAIRA delivery Mumbai...';
+  } else {
+    ex.className='type-btn exp-active';ea.className='type-btn';
+    amt.style.color='var(--red)';btn.className='btn-save exp';btn.textContent='Save Expense';
+    document.getElementById('expTypeField').style.display='block';
+    document.getElementById('noteLabel').textContent='Notes';
+    document.getElementById('addNote').placeholder='Details...';
+    document.getElementById('clientDetect').style.display='none';
+  }
+}
+document.getElementById('addNote').addEventListener('input',function(){
+  if(ENTRY_TYPE!=='earning') return;
+  const det=document.getElementById('clientDetect');
+  if(this.value.trim()){ det.style.display='flex'; document.getElementById('detectedBadge').innerHTML=clientBadge(detectClient(this.value)); }
+  else det.style.display='none';
+});
+async function saveEntry() {
+  const vehicle=document.getElementById('addVehicle').value;
+  const amount=parseFloat(document.getElementById('addAmount').value);
+  const date=document.getElementById('addDate').value;
+  const note=document.getElementById('addNote').value.trim();
+  if(!vehicle||!amount||!date){toast('addToast','Please fill vehicle, amount and date.',false);return;}
+  const btn=document.getElementById('saveBtn'); btn.disabled=true; btn.textContent='Saving...';
+  try {
+    if(ENTRY_TYPE==='earning') await insertRow('earnings',{vehicle,amount,note,date});
+    else await insertRow('expenses',{vehicle,amount,expense_type:document.getElementById('addExpType').value,note,date});
+    toast('addToast',(ENTRY_TYPE==='earning'?'Earning':'Expense')+' saved!',true);
+    document.getElementById('addAmount').value=''; document.getElementById('addNote').value='';
+    document.getElementById('clientDetect').style.display='none';
+  } catch(e){ toast('addToast','Error: '+e.message,false); }
+  btn.disabled=false; setType(ENTRY_TYPE);
+}
+
+// ═══════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════
+async function loadHistory() {
+  const vehicle=document.getElementById('histVehicle').value;
+  const month=parseInt(document.getElementById('histMonth').value);
+  const year=parseInt(document.getElementById('histYear').value);
+  const el=document.getElementById('histContent');
+  if(!vehicle){el.innerHTML='<div class="no-data">← Select a vehicle to view history</div>';return;}
+  el.innerHTML='<div class="no-data">Loading...</div>';
+  try {
+    const [earnings,expenses]=await Promise.all([getRows('earnings',vehicle,month,year),getRows('expenses',vehicle,month,year)]);
+    const totalE=earnings.reduce((s,e)=>s+Number(e.amount),0);
+    const totalX=expenses.reduce((s,e)=>s+Number(e.amount),0);
+    const net=totalE-totalX;
+    const kE=earnings.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0);
+    const jE=earnings.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0);
+    const oE=earnings.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0);
+    const expByType={};
+    expenses.forEach(e=>expByType[e.expense_type]=(expByType[e.expense_type]||0)+Number(e.amount));
+    const byDay={};
+    earnings.forEach(e=>{if(!byDay[e.date])byDay[e.date]={earn:[],exp:[]};byDay[e.date].earn.push(e);});
+    expenses.forEach(e=>{if(!byDay[e.date])byDay[e.date]={earn:[],exp:[]};byDay[e.date].exp.push(e);});
+    const days=Object.keys(byDay).sort().reverse();
+    const pct=v=>totalE>0?((v/totalE)*100).toFixed(1):'0.0';
+    let html=`
+    <div class="stat-row">
+      <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">Total Earnings</div><div class="sval" style="color:var(--green)">${fmt(totalE)}</div></div>
+      <div class="stat-card" style="border-color:#ef444433"><div class="slabel">Total Expenses</div><div class="sval" style="color:var(--red)">${fmt(totalX)}</div></div>
+      <div class="stat-card" style="border-color:${net>=0?'#22c55e33':'#ef444433'}"><div class="slabel">Net Profit</div><div class="sval" style="color:${net>=0?'var(--green)':'var(--red)'}">${fmt(net)}</div></div>
+    </div>
+    <div class="section-card"><div class="section-title">Earnings by Client</div><div class="client-grid">
+      ${[['KAIRA',kE,'var(--kaira)','#f59e0b'],['JIT',jE,'var(--jit)','#06b6d4'],['Others',oE,'var(--other)','#a78bfa']].map(([l,v,col,hex])=>`
+      <div class="client-box" style="border-color:${hex}33">
+        <div class="clabel" style="color:${col}">${l}<span class="cpct">${pct(v)}%</span></div>
+        <div class="cval" style="color:${col}">${fmt(v)}</div>
+        <div class="cbar-bg"><div class="cbar" style="width:${pct(v)}%;background:${col}"></div></div>
+      </div>`).join('')}
+    </div></div>`;
+    if(Object.keys(expByType).length>0){
+      html+=`<div class="section-card"><div class="section-title">Expense by Category</div>
+        ${Object.entries(expByType).sort((a,b)=>b[1]-a[1]).map(([t,a])=>`
+        <div class="exp-row"><div class="exp-name">${t}</div>
+        <div class="exp-bar-bg"><div class="exp-bar" style="width:${totalX>0?(a/totalX*100).toFixed(1):0}%"></div></div>
+        <div class="exp-amt">${fmt(a)}</div></div>`).join('')}
+      </div>`;
+    }
+    if(!days.length) html+='<div class="no-data">No entries found.</div>';
+    else days.forEach(day=>{
+      const {earn,exp}=byDay[day];
+      const dE=earn.reduce((s,e)=>s+Number(e.amount),0),dX=exp.reduce((s,e)=>s+Number(e.amount),0),dNet=dE-dX;
+      const dl=new Date(day+'T00:00:00').toLocaleDateString('en-SG',{weekday:'short',day:'2-digit',month:'short'});
+      html+=`<div class="day-card">
+        <div class="day-header" onclick="const b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none'">
+          <span class="day-label">${dl}</span>
+          <div class="day-amounts">
+            ${dE>0?`<span class="mono" style="font-size:12px;color:var(--green)">+${fmt(dE)}</span>`:''}
+            ${dX>0?`<span class="mono" style="font-size:12px;color:var(--red)">-${fmt(dX)}</span>`:''}
+            <span class="mono" style="font-size:12px;font-weight:700;color:${dNet>=0?'var(--green)':'var(--red)'}">${fmt(dNet)}</span>
+          </div>
+        </div>
+        <div class="day-body">
+          ${earn.map(e=>`<div class="entry-row"><div class="dot" style="background:var(--green)"></div>
+            <div class="entry-info"><div class="entry-meta"><span style="font-size:11px;color:var(--muted)">Earning</span>${clientBadge(detectClient(e.note))}</div>
+            ${e.note?`<div class="entry-note">${e.note}</div>`:''}</div>
+            <span class="entry-amt" style="color:var(--green)">${fmt(e.amount)}</span></div>`).join('')}
+          ${exp.map(e=>`<div class="entry-row"><div class="dot" style="background:var(--red)"></div>
+            <div class="entry-info"><div class="entry-meta"><span class="exp-tag">${e.expense_type}</span></div>
+            ${e.note?`<div class="entry-note">${e.note}</div>`:''}</div>
+            <span class="entry-amt" style="color:var(--red)">-${fmt(e.amount)}</span></div>`).join('')}
+        </div>
+      </div>`;
+    });
+    el.innerHTML=html;
+  } catch(e){el.innerHTML=`<div class="no-data" style="color:var(--red)">Error: ${e.message}</div>`;}
+}
+
+// ═══════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════
+async function loadDashboard() {
+  const month=parseInt(document.getElementById('dashMonth').value);
+  const year=parseInt(document.getElementById('dashYear').value);
+  const el=document.getElementById('dashContent');
+  el.innerHTML='<div class="no-data">Loading...</div>';
+  try {
+    const [allE,allX]=await Promise.all([getAllRows('earnings',month,year),getAllRows('expenses',month,year)]);
+    const grandE=allE.reduce((s,e)=>s+Number(e.amount),0);
+    const grandX=allX.reduce((s,e)=>s+Number(e.amount),0);
+    const grandK=allE.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0);
+    const grandJ=allE.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0);
+    const grandO=allE.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0);
+    const grandNet=grandE-grandX;
+    const TARGET = 6500; // S$ expectation per vehicle per month
+    const rows=VEHICLES.map(v=>{
+      const ve=allE.filter(e=>e.vehicle===v),vx=allX.filter(e=>e.vehicle===v);
+      const te=ve.reduce((s,e)=>s+Number(e.amount),0),tx=vx.reduce((s,e)=>s+Number(e.amount),0);
+      // ── Incentive / Deduction logic ──────────────────
+      let extraAchieved=0,incentive=0,underAchieved=0,deduction=0,perfStatus='';
+      if(te>=TARGET){
+        extraAchieved=te-TARGET;
+        incentive=extraAchieved*0.5;
+        perfStatus='over';
+      } else {
+        underAchieved=TARGET-te;
+        deduction=(underAchieved*3000)/TARGET;
+        perfStatus='under';
+      }
+      return{v,te,tx,net:te-tx,
+        kk:ve.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0),
+        jj:ve.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0),
+        oo:ve.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0),
+        extraAchieved,incentive,underAchieved,deduction,perfStatus};
+    });
+    const totalIncentive=rows.reduce((s,r)=>s+r.incentive,0);
+    const totalDeduction=rows.reduce((s,r)=>s+r.deduction,0);
+    const pct=v=>grandE>0?((v/grandE)*100).toFixed(1):'0.0';
+    el.innerHTML=`
+    <div class="stat-row">
+      <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">Fleet Earnings</div><div class="sval" style="color:var(--green)">${fmt(grandE)}</div></div>
+      <div class="stat-card" style="border-color:#ef444433"><div class="slabel">Fleet Expenses</div><div class="sval" style="color:var(--red)">${fmt(grandX)}</div></div>
+      <div class="stat-card" style="border-color:${grandNet>=0?'#22c55e33':'#ef444433'}"><div class="slabel">Net Profit</div><div class="sval" style="color:${grandNet>=0?'var(--green)':'var(--red)'}">${fmt(grandNet)}</div></div>
+    </div>
+    <div class="section-card"><div class="section-title">Fleet Client Earnings — ${MONTHS[month]} ${year}</div><div class="client-grid">
+      ${[['KAIRA',grandK,'var(--kaira)','#f59e0b'],['JIT',grandJ,'var(--jit)','#06b6d4'],['Others',grandO,'var(--other)','#a78bfa']].map(([l,v,col,hex])=>`
+      <div class="client-box" style="border-color:${hex}33">
+        <div class="clabel" style="color:${col}">${l}<span class="cpct">${pct(v)}%</span></div>
+        <div class="cval" style="color:${col}">${fmt(v)}</div>
+        <div class="cbar-bg"><div class="cbar" style="width:${pct(v)}%;background:${col}"></div></div>
+      </div>`).join('')}
+    </div></div>
+    <div class="section-card"><div class="section-title">Vehicle-wise Summary — ${MONTHS[month]} ${year}</div>
+    <div class="dtable-wrap"><table>
+      <thead><tr><th>Vehicle</th><th style="color:var(--green)">Earnings</th><th style="color:var(--kaira)">KAIRA</th><th style="color:var(--jit)">JIT</th><th style="color:var(--other)">Others</th><th style="color:var(--red)">Expenses</th><th>Net</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr>
+          <td class="mono" style="color:var(--accent);font-weight:700">${r.v}</td>
+          <td class="mono" style="color:var(--green)">${fmt(r.te)}</td>
+          <td class="mono" style="color:var(--kaira)">${fmt(r.kk)}</td>
+          <td class="mono" style="color:var(--jit)">${fmt(r.jj)}</td>
+          <td class="mono" style="color:var(--other)">${fmt(r.oo)}</td>
+          <td class="mono" style="color:var(--red)">${fmt(r.tx)}</td>
+          <td class="mono" style="color:${r.net>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(r.net)}</td>
+        </tr>`).join('')}
+        <tr style="border-top:2px solid var(--border)">
+          <td style="font-weight:700;color:var(--muted)">TOTAL</td>
+          <td class="mono" style="color:var(--green);font-weight:700">${fmt(grandE)}</td>
+          <td class="mono" style="color:var(--kaira);font-weight:700">${fmt(grandK)}</td>
+          <td class="mono" style="color:var(--jit);font-weight:700">${fmt(grandJ)}</td>
+          <td class="mono" style="color:var(--other);font-weight:700">${fmt(grandO)}</td>
+          <td class="mono" style="color:var(--red);font-weight:700">${fmt(grandX)}</td>
+          <td class="mono" style="color:${grandNet>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(grandNet)}</td>
+        </tr>
+      </tbody>
+    </table></div></div>
+
+    <!-- ── Performance & Incentive Section ── -->
+    <div class="section-card" style="border-color:#f0a50033">
+      <div class="section-title" style="color:var(--accent)">⚡ Performance vs Target — ${MONTHS[month]} ${year} &nbsp;<span style="font-size:9px;color:var(--muted);letter-spacing:0;font-weight:400;text-transform:none">Target per vehicle: S$6,500</span></div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:140px;background:var(--green-dim);border:1px solid #22c55e33;border-radius:10px;padding:14px">
+          <div style="font-size:9px;color:var(--green);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:4px">Total Incentive Earned</div>
+          <div class="mono" style="font-size:20px;font-weight:800;color:var(--green)">${fmt(totalIncentive)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">50% of over-target earnings</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:var(--red-dim);border:1px solid #ef444433;border-radius:10px;padding:14px">
+          <div style="font-size:9px;color:var(--red);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:4px">Total Deduction</div>
+          <div class="mono" style="font-size:20px;font-weight:800;color:var(--red)">${fmt(totalDeduction)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Under-achieved × (3000÷6500)</div>
+        </div>
+      </div>
+      <div class="dtable-wrap"><table>
+        <thead><tr>
+          <th>Vehicle</th>
+          <th style="color:var(--green)">Earning</th>
+          <th>Status</th>
+          <th style="color:var(--green)">Extra Achieved</th>
+          <th style="color:var(--green)">Incentive (50%)</th>
+          <th style="color:var(--red)">Under Achieved</th>
+          <th style="color:var(--red)">Deduction</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr>
+            <td class="mono" style="color:var(--accent);font-weight:700">${r.v}</td>
+            <td class="mono" style="color:${r.te>=TARGET?'var(--green)':'var(--red)'}">${fmt(r.te)}</td>
+            <td>${r.perfStatus==='over'
+              ?'<span style="background:var(--green-dim);color:var(--green);border:1px solid #22c55e44;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700">✔ MET</span>'
+              :'<span style="background:var(--red-dim);color:var(--red);border:1px solid #ef444433;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700">✗ BELOW</span>'
+            }</td>
+            <td class="mono" style="color:var(--green)">${r.perfStatus==='over'?fmt(r.extraAchieved):'—'}</td>
+            <td class="mono" style="color:var(--green);font-weight:700">${r.perfStatus==='over'?fmt(r.incentive):'—'}</td>
+            <td class="mono" style="color:var(--red)">${r.perfStatus==='under'?fmt(r.underAchieved):'—'}</td>
+            <td class="mono" style="color:var(--red);font-weight:700">${r.perfStatus==='under'?fmt(r.deduction):'—'}</td>
+          </tr>`).join('')}
+          <tr style="border-top:2px solid var(--border)">
+            <td style="font-weight:700;color:var(--muted)">TOTAL</td>
+            <td></td><td></td>
+            <td class="mono" style="color:var(--green);font-weight:700">${fmt(rows.reduce((s,r)=>s+r.extraAchieved,0))}</td>
+            <td class="mono" style="color:var(--green);font-weight:800">${fmt(totalIncentive)}</td>
+            <td class="mono" style="color:var(--red);font-weight:700">${fmt(rows.reduce((s,r)=>s+r.underAchieved,0))}</td>
+            <td class="mono" style="color:var(--red);font-weight:800">${fmt(totalDeduction)}</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div style="margin-top:12px;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted);line-height:1.9">
+        <b style="color:var(--text)">Calculation Rules:</b><br>
+        • <b style="color:var(--green)">Extra Achieved</b> = Earning − S$6,500 &nbsp;|&nbsp; <b style="color:var(--green)">Incentive</b> = Extra Achieved × 50%<br>
+        • <b style="color:var(--red)">Under Achieved</b> = S$6,500 − Earning &nbsp;|&nbsp; <b style="color:var(--red)">Deduction</b> = Under Achieved × (3000 ÷ 6500)
+      </div>
+    </div>`;
+  } catch(e){document.getElementById('dashContent').innerHTML=`<div class="no-data" style="color:var(--red)">Error: ${e.message}</div>`;}
+}
+
+// ═══════════════════════════════════════════════
+//  CHARTS — MAIN LOADER
+// ═══════════════════════════════════════════════
+async function loadCharts() {
+  const year  = parseInt(document.getElementById('chartYear').value);
+  const view  = document.getElementById('chartView').value;
+  const strip = document.getElementById('vTabStrip');
+  const el    = document.getElementById('chartsContent');
+
+  Object.keys(CI).forEach(killChart);
+  el.innerHTML='<div class="no-data">Loading data...</div>';
+  strip.innerHTML='';
+
+  try {
+    const [yearE,yearX] = await Promise.all([getYear('earnings',year),getYear('expenses',year)]);
+
+    // Build monthData[vehicle][0..11] = {earn,exp,net,kaira,jit,other}
+    const md = {};
+    VEHICLES.forEach(v=>{ md[v]=Array.from({length:12},()=>({earn:0,exp:0,net:0,kaira:0,jit:0,other:0})); });
+    yearE.forEach(e=>{
+      const m=parseInt(e.date.split('-')[1])-1;
+      if(!md[e.vehicle]) return;
+      const c=detectClient(e.note); const a=Number(e.amount);
+      md[e.vehicle][m].earn+=a;
+      if(c==='KAIRA') md[e.vehicle][m].kaira+=a;
+      else if(c==='JIT') md[e.vehicle][m].jit+=a;
+      else md[e.vehicle][m].other+=a;
+    });
+    yearX.forEach(e=>{
+      const m=parseInt(e.date.split('-')[1])-1;
+      if(!md[e.vehicle]) return;
+      md[e.vehicle][m].exp+=Number(e.amount);
+    });
+    VEHICLES.forEach(v=>{ for(let m=0;m<12;m++) md[v][m].net=md[v][m].earn-md[v][m].exp; });
+
+    if(view==='individual'){
+      if(!activeVehicle||!VEHICLES.includes(activeVehicle)) activeVehicle=VEHICLES[0];
+      strip.innerHTML=VEHICLES.map(v=>`<button class="v-tab${v===activeVehicle?' active':''}" onclick="switchV('${v}',${year})">${v}</button>`).join('');
+      renderIndividual(activeVehicle,year,md[activeVehicle]);
+    } else if(view==='compare'){
+      renderCompare(year,md);
+    } else {
+      renderClientTrend(year,md);
+    }
+  } catch(e){ el.innerHTML=`<div class="no-data" style="color:var(--red)">Error: ${e.message}</div>`; }
+}
+
+function switchV(v,year){ activeVehicle=v; loadCharts(); }
+
+// ── Individual vehicle ──────────────────────────
+function renderIndividual(vehicle,year,data) {
+  const el=document.getElementById('chartsContent');
+  const now=new Date().getMonth();
+  const pe=data[now>0?now-1:0].earn, ce=data[now].earn;
+  const pn=data[now>0?now-1:0].net,  cn=data[now].net;
+  const pctChg=(prev,curr)=>prev>0?((curr-prev)/prev*100).toFixed(1):null;
+  const badge=(diff,lbl)=>{
+    if(diff===null) return `<span class="trend-badge t-fl">— N/A</span>`;
+    return diff>0?`<span class="trend-badge t-up">▲ ${diff}% ${lbl}</span>`:`<span class="trend-badge t-dn">▼ ${Math.abs(diff)}% ${lbl}</span>`;
+  };
+  const ytdE=data.reduce((s,d)=>s+d.earn,0);
+  const ytdX=data.reduce((s,d)=>s+d.exp,0);
+  const ytdN=data.reduce((s,d)=>s+d.net,0);
+  const bestM=data.reduce((b,d,i)=>d.earn>data[b].earn?i:b,0);
+
+  el.innerHTML=`
+  <div class="stat-row">
+    <div class="stat-card" style="border-color:#22c55e33">
+      <div class="slabel">YTD Earnings</div><div class="sval" style="color:var(--green)">${fmtK(ytdE)}</div>
+      <div class="ssub">${badge(pctChg(pe,ce),'vs prev month')}</div>
+    </div>
+    <div class="stat-card" style="border-color:#ef444433">
+      <div class="slabel">YTD Expenses</div><div class="sval" style="color:var(--red)">${fmtK(ytdX)}</div>
+    </div>
+    <div class="stat-card" style="border-color:${ytdN>=0?'#22c55e33':'#ef444433'}">
+      <div class="slabel">YTD Net Profit</div><div class="sval" style="color:${ytdN>=0?'var(--green)':'var(--red)'}">${fmtK(ytdN)}</div>
+      <div class="ssub">${badge(pctChg(pn,cn),'vs prev month')}</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--accent)33">
+      <div class="slabel">Best Month</div><div class="sval" style="color:var(--accent);font-size:16px">${MONTHS_S[bestM]}</div>
+      <div class="ssub">${fmtK(data[bestM].earn)}</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Earnings vs Expenses — ${vehicle} · ${year}</div>
+    <div class="chart-sub">Monthly comparison of income and spending</div>
+    <canvas id="ch-ee"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Net Profit Trend — ${vehicle} · ${year}</div>
+    <div class="chart-sub">Green dots = profitable months · Red dots = loss months</div>
+    <canvas id="ch-net"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Client Earnings Breakdown — ${vehicle} · ${year}</div>
+    <div class="chart-sub">KAIRA · JIT · Others stacked per month</div>
+    <canvas id="ch-cli"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Expense Ratio % — ${vehicle} · ${year}</div>
+    <div class="chart-sub">% of earnings spent. Green &lt;40% · Amber 40–70% · Red &gt;70%</div>
+    <canvas id="ch-ratio"></canvas>
+  </div>`;
+
+  // Earnings vs Expenses grouped bar
+  CI['ch-ee']=new Chart(document.getElementById('ch-ee'),{
+    type:'bar', data:{ labels:MONTHS_S, datasets:[
+      {label:'Earnings',data:data.map(d=>d.earn),backgroundColor:'#22c55e55',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4},
+      {label:'Expenses',data:data.map(d=>d.exp), backgroundColor:'#ef444455',borderColor:'#ef4444',borderWidth:1.5,borderRadius:4}
+    ]}, options:{...CD}
+  });
+
+  // Net profit line
+  CI['ch-net']=new Chart(document.getElementById('ch-net'),{
+    type:'line', data:{ labels:MONTHS_S, datasets:[{
+      label:'Net Profit', data:data.map(d=>d.net),
+      borderColor:'#f0a500', backgroundColor:'#f0a50020',
+      pointBackgroundColor:data.map(d=>d.net>=0?'#22c55e':'#ef4444'),
+      pointBorderColor:'#09090d', pointRadius:5, pointHoverRadius:7,
+      tension:.35, fill:true, borderWidth:2
+    }]}, options:{...CD}
+  });
+
+  // Client stacked bar
+  CI['ch-cli']=new Chart(document.getElementById('ch-cli'),{
+    type:'bar', data:{ labels:MONTHS_S, datasets:[
+      {label:'KAIRA', data:data.map(d=>d.kaira),backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:2},
+      {label:'JIT',   data:data.map(d=>d.jit),  backgroundColor:'#06b6d499',borderColor:'#06b6d4',borderWidth:1,borderRadius:2},
+      {label:'Others',data:data.map(d=>d.other), backgroundColor:'#a78bfa99',borderColor:'#a78bfa',borderWidth:1,borderRadius:2}
+    ]}, options:{...CD, scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}
+  });
+
+  // Expense ratio
+  const ratio=data.map(d=>d.earn>0?+((d.exp/d.earn)*100).toFixed(1):0);
+  CI['ch-ratio']=new Chart(document.getElementById('ch-ratio'),{
+    type:'line', data:{ labels:MONTHS_S, datasets:[{
+      label:'Expense %', data:ratio,
+      borderColor:'#a78bfa', backgroundColor:'#a78bfa20',
+      pointBackgroundColor:ratio.map(v=>v>70?'#ef4444':v>40?'#f59e0b':'#22c55e'),
+      pointBorderColor:'#09090d', pointRadius:5, pointHoverRadius:7,
+      tension:.35, fill:true, borderWidth:2
+    }]}, options:{...CD, scales:{x:CD.scales.x,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v+'%'},max:110}}}
+  });
+}
+
+// ── Compare all vehicles ────────────────────────
+function renderCompare(year,md) {
+  const el=document.getElementById('chartsContent');
+  const totals=VEHICLES.map((v,i)=>({
+    v,col:VCOLS[i%VCOLS.length],
+    earn:md[v].reduce((s,d)=>s+d.earn,0),
+    exp: md[v].reduce((s,d)=>s+d.exp,0),
+    net: md[v].reduce((s,d)=>s+d.net,0),
+    kaira:md[v].reduce((s,d)=>s+d.kaira,0),
+    jit:  md[v].reduce((s,d)=>s+d.jit,0),
+  }));
+  const maxE=Math.max(...totals.map(t=>t.earn),1);
+
+  el.innerHTML=`
+  <div class="chart-wrap">
+    <div class="chart-title">Earnings Comparison — All Vehicles · ${year}</div>
+    <div class="chart-sub">Annual total earnings per vehicle</div>
+    <canvas id="ch-cmp-earn"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Net Profit Comparison — All Vehicles · ${year}</div>
+    <div class="chart-sub">Green = profit · Red = loss</div>
+    <canvas id="ch-cmp-net"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Month-wise Earnings Trend — All Vehicles · ${year}</div>
+    <div class="chart-sub">Overlapping lines show each vehicle's monthly performance</div>
+    <canvas id="ch-cmp-lines"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Month-wise Expenses — All Vehicles · ${year}</div>
+    <canvas id="ch-cmp-exp"></canvas>
+  </div>
+  <div class="section-title" style="margin-top:4px;margin-bottom:12px">VEHICLE PERFORMANCE CARDS — ${year}</div>
+  <div class="compare-grid">
+    ${totals.map((t,i)=>{
+      const ratio=t.earn>0?((t.exp/t.earn)*100).toFixed(0):0;
+      const nc=t.net>=0?'var(--green)':'var(--red)';
+      return `<div class="compare-card">
+        <div class="cv-label" style="color:${t.col}">${t.v}</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Earnings</div>
+            <div class="mono" style="font-size:15px;color:var(--green);font-weight:700">${fmtK(t.earn)}</div></div>
+          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Net</div>
+            <div class="mono" style="font-size:15px;color:${nc};font-weight:700">${fmtK(t.net)}</div></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">KAIRA</div><div class="mono" style="font-size:12px;color:var(--kaira)">${fmtK(t.kaira)}</div></div>
+          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">JIT</div><div class="mono" style="font-size:12px;color:var(--jit)">${fmtK(t.jit)}</div></div>
+          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">Exp Ratio</div>
+            <div class="mono" style="font-size:12px;color:${ratio>70?'var(--red)':ratio>40?'var(--kaira)':'var(--green)'}">${ratio}%</div></div>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px">
+          <div style="height:4px;border-radius:2px;background:${t.col};width:${(t.earn/maxE*100).toFixed(0)}%;transition:width .6s"></div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  CI['ch-cmp-earn']=new Chart(document.getElementById('ch-cmp-earn'),{
+    type:'bar', data:{labels:totals.map(t=>t.v), datasets:[{
+      label:'Total Earnings', data:totals.map(t=>t.earn),
+      backgroundColor:VCOLS.map(c=>c+'88'), borderColor:VCOLS, borderWidth:1.5, borderRadius:6
+    }]}, options:{...CD}
+  });
+  CI['ch-cmp-net']=new Chart(document.getElementById('ch-cmp-net'),{
+    type:'bar', data:{labels:totals.map(t=>t.v), datasets:[{
+      label:'Net Profit', data:totals.map(t=>t.net),
+      backgroundColor:totals.map(t=>t.net>=0?'#22c55e88':'#ef444488'),
+      borderColor:totals.map(t=>t.net>=0?'#22c55e':'#ef4444'), borderWidth:1.5, borderRadius:6
+    }]}, options:{...CD}
+  });
+  CI['ch-cmp-lines']=new Chart(document.getElementById('ch-cmp-lines'),{
+    type:'line', data:{labels:MONTHS_S, datasets:VEHICLES.map((v,i)=>({
+      label:v, data:md[v].map(d=>d.earn),
+      borderColor:VCOLS[i%VCOLS.length], backgroundColor:'transparent',
+      pointBackgroundColor:VCOLS[i%VCOLS.length], pointRadius:3,
+      tension:.35, borderWidth:2
+    }))}, options:{...CD}
+  });
+  CI['ch-cmp-exp']=new Chart(document.getElementById('ch-cmp-exp'),{
+    type:'bar', data:{labels:MONTHS_S, datasets:VEHICLES.map((v,i)=>({
+      label:v, data:md[v].map(d=>d.exp),
+      backgroundColor:VCOLS[i%VCOLS.length]+'88', borderColor:VCOLS[i%VCOLS.length], borderWidth:1, borderRadius:3
+    }))}, options:{...CD, scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}
+  });
+}
+
+// ── Client trend ────────────────────────────────
+function renderClientTrend(year,md) {
+  const el=document.getElementById('chartsContent');
+  const fK=Array(12).fill(0),fJ=Array(12).fill(0),fO=Array(12).fill(0);
+  VEHICLES.forEach(v=>{ for(let m=0;m<12;m++){fK[m]+=md[v][m].kaira;fJ[m]+=md[v][m].jit;fO[m]+=md[v][m].other;} });
+
+  el.innerHTML=`
+  <div class="chart-wrap">
+    <div class="chart-title">Fleet Client Earnings Trend — ${year}</div>
+    <div class="chart-sub">Monthly KAIRA · JIT · Others across all vehicles</div>
+    <canvas id="ch-flt"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">KAIRA vs JIT Head-to-Head — ${year}</div>
+    <div class="chart-sub">Direct monthly comparison of your two major clients</div>
+    <canvas id="ch-kj"></canvas>
+  </div>
+  <div class="section-title" style="margin-bottom:12px">CLIENT MIX PER VEHICLE — ${year}</div>
+  <div class="compare-grid">
+    ${VEHICLES.map((v,i)=>`<div class="compare-card"><div class="cv-label" style="color:${VCOLS[i%VCOLS.length]}">${v}</div><canvas id="ch-mix-${i}" style="max-height:150px"></canvas></div>`).join('')}
+  </div>`;
+
+  CI['ch-flt']=new Chart(document.getElementById('ch-flt'),{
+    type:'line', data:{labels:MONTHS_S, datasets:[
+      {label:'KAIRA',data:fK,borderColor:'#f59e0b',backgroundColor:'#f59e0b28',fill:true,tension:.4,borderWidth:2},
+      {label:'JIT',  data:fJ,borderColor:'#06b6d4',backgroundColor:'#06b6d428',fill:true,tension:.4,borderWidth:2},
+      {label:'Others',data:fO,borderColor:'#a78bfa',backgroundColor:'#a78bfa28',fill:true,tension:.4,borderWidth:2}
+    ]}, options:{...CD}
+  });
+  CI['ch-kj']=new Chart(document.getElementById('ch-kj'),{
+    type:'bar', data:{labels:MONTHS_S, datasets:[
+      {label:'KAIRA',data:fK,backgroundColor:'#f59e0b88',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4},
+      {label:'JIT',  data:fJ,backgroundColor:'#06b6d488',borderColor:'#06b6d4',borderWidth:1.5,borderRadius:4}
+    ]}, options:{...CD}
+  });
+  VEHICLES.forEach((v,i)=>{
+    const d=md[v];
+    const tK=d.reduce((s,x)=>s+x.kaira,0),tJ=d.reduce((s,x)=>s+x.jit,0),tO=d.reduce((s,x)=>s+x.other,0);
+    const cid=`ch-mix-${i}`;
+    CI[cid]=new Chart(document.getElementById(cid),{
+      type:'doughnut',
+      data:{labels:['KAIRA','JIT','Others'],datasets:[{
+        data:[tK,tJ,tO],
+        backgroundColor:['#f59e0b99','#06b6d499','#a78bfa99'],
+        borderColor:['#f59e0b','#06b6d4','#a78bfa'],borderWidth:1.5
+      }]},
+      options:{responsive:true,maintainAspectRatio:true,cutout:'62%',
+        plugins:{
+          legend:{position:'bottom',labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:10},boxWidth:10,padding:10}},
+          tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:8,callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}
+        }
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  CASH ON HAND
+// ═══════════════════════════════════════════════
+const CASH_TYPE_STYLE = {
+  'Petty Cash':     { color:'var(--kaira)',  bg:'#f59e0b22', border:'#f59e0b44' },
+  'Cash Order':     { color:'var(--other)',  bg:'#a78bfa22', border:'#a78bfa44' },
+  'Advance Salary': { color:'var(--green)',  bg:'#22c55e18', border:'#22c55e44' },
+  'Other':          { color:'#06b6d4',       bg:'#06b6d422', border:'#06b6d444' },
+};
+function cashStyle(type) {
+  return CASH_TYPE_STYLE[type] || CASH_TYPE_STYLE['Other'];
+}
+
+async function saveCash() {
+  const cash_type = document.getElementById('cashType').value;
+  const amount    = parseFloat(document.getElementById('cashAmount').value);
+  const date      = document.getElementById('cashDate').value;
+  const note      = document.getElementById('cashNote').value.trim();
+  if (!amount || !date) { toast('cashToast', 'Please fill amount and date.', false); return; }
+  const btn = document.getElementById('cashSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await insertCash({ cash_type, amount, note, date });
+    toast('cashToast', 'Cash entry saved!', true);
+    document.getElementById('cashAmount').value = '';
+    document.getElementById('cashNote').value = '';
+    loadCash();
+  } catch(e) { toast('cashToast', 'Error: ' + e.message, false); }
+  btn.disabled = false; btn.textContent = 'Record Cash Payment';
+}
+
+async function loadCash() {
+  const month = parseInt(document.getElementById('cashMonth').value);
+  const year  = parseInt(document.getElementById('cashYear').value);
+  const entriesEl = document.getElementById('cashEntries');
+  const stripEl   = document.getElementById('cashSummaryStrip');
+  const deductEl  = document.getElementById('cashDeductTotal');
+
+  entriesEl.innerHTML = '<div class="cash-empty">Loading...</div>';
+  try {
+    const rows = await getCashRows(month, year);
+
+    // Totals
+    const total    = rows.reduce((s,r) => s + Number(r.amount), 0);
+    const petty    = rows.filter(r => r.cash_type === 'Petty Cash').reduce((s,r) => s + Number(r.amount), 0);
+    const orders   = rows.filter(r => r.cash_type === 'Cash Order').reduce((s,r) => s + Number(r.amount), 0);
+    const advances = rows.filter(r => r.cash_type === 'Advance Salary').reduce((s,r) => s + Number(r.amount), 0);
+
+    // Update summary strip
+    stripEl.innerHTML = `
+      <div class="cash-summary-cell">
+        <div class="csc-label">Total Paid Out</div>
+        <div class="csc-val" style="color:#06b6d4">${fmt(total)}</div>
+      </div>
+      <div class="cash-summary-cell">
+        <div class="csc-label">Petty Cash</div>
+        <div class="csc-val" style="color:var(--kaira)">${fmt(petty)}</div>
+      </div>
+      <div class="cash-summary-cell">
+        <div class="csc-label">Cash Orders</div>
+        <div class="csc-val" style="color:var(--other)">${fmt(orders)}</div>
+      </div>
+      <div class="cash-summary-cell">
+        <div class="csc-label">Advances</div>
+        <div class="csc-val" style="color:var(--green)">${fmt(advances)}</div>
+      </div>`;
+
+    if (deductEl) deductEl.textContent = fmt(total);
+
+    if (!rows.length) {
+      entriesEl.innerHTML = '<div class="cash-empty">No cash entries for this month.</div>';
+      return;
+    }
+
+    // Running total (chronological, but displayed newest-first)
+    // compute running totals oldest→newest then reverse for display
+    const sorted = [...rows].sort((a,b) => a.date.localeCompare(b.date));
+    let running = 0;
+    const withRunning = sorted.map(r => { running += Number(r.amount); return { ...r, running }; });
+    withRunning.reverse(); // newest first for display
+
+    let html = '';
+    withRunning.forEach(r => {
+      const d   = new Date(r.date + 'T00:00:00');
+      const day = d.getDate();
+      const mon = d.toLocaleDateString('en-SG', { month:'short' });
+      const st  = cashStyle(r.cash_type);
+      html += `
+      <div class="cash-entry-row">
+        <div class="cash-date-col">
+          <div class="cash-date-day">${pad(day)}</div>
+          <div class="cash-date-mon">${mon}</div>
+        </div>
+        <div class="cash-body">
+          <span class="cash-type-badge" style="color:${st.color};background:${st.bg};border:1px solid ${st.border}">${r.cash_type}</span>
+          ${r.note ? `<div class="cash-note">${r.note}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="cash-amt">${fmt(r.amount)}</div>
+          <div class="cash-running">Running: ${fmt(r.running)}</div>
+        </div>
+      </div>`;
+    });
+    entriesEl.innerHTML = html;
+
+  } catch(e) {
+    entriesEl.innerHTML = `<div class="cash-empty" style="color:var(--red)">Error: ${e.message}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TAB ROUTING
+// ═══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='history')   loadHistory();
+    if(btn.dataset.tab==='dashboard') loadDashboard();
+    if(btn.dataset.tab==='charts')    loadCharts();
+    if(btn.dataset.tab==='cash')      loadCash();
+    if(btn.dataset.tab==='vehicles')  loadVehicleList();
+  });
+});
+
+// ═══════════════════════════════════════════════
+//  CONFIG — not used in production (credentials hardcoded above)
+// ═══════════════════════════════════════════════
+function openConfig(){ /* no-op in production */ }
+
+// Demo mode not available in production build
+
+// ══════════════════════════════════════════════
+//  AUTH GUARD
+// ══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) { window.location.replace('./login.html'); return; }
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  document.getElementById('userEmail').textContent = user.email;
+  initApp();
+});
+
+window.addEventListener('pageshow', async function(e) {
+  if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
+    const { data: { session: s } } = await sb.auth.getSession();
+    if (!s) window.location.replace('./login.html');
+  }
+});
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.replace('./login.html');
+}
+
+function initApp() {
+  document.getElementById('addDate').value  = todayStr();
+  document.getElementById('cashDate').value = todayStr();
+  populateDateSelects();
+  (async () => {
+    await loadVehiclesFromDB();
+    loadDashboard();
+  })();
+}
+</script>
+</body>
+</html>
