@@ -147,35 +147,60 @@
 
   /* ── Cash on Hand tab ── */
   .cash-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
-  @media(max-width:700px){.cash-layout{grid-template-columns:1fr}}
+  @media(max-width:700px){
+    .cash-layout{grid-template-columns:1fr}
+    /* On mobile the form comes first (natural order), ledger second */
+    .cash-ledger-col{order:2}
+    .cash-form-col{order:1}
+  }
   .cash-form-card{background:var(--card);border:1px solid #06b6d433;border-radius:14px;padding:22px;position:sticky;top:80px}
   .cash-form-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:18px}
+
+  /* ── Cash ledger ── */
   .cash-ledger{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-  .cash-ledger-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
-  .cash-ledger-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
-  .cash-month-filters{display:flex;gap:8px}
-  .cash-month-filters select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 10px;font-family:'Syne',sans-serif;font-size:11px;outline:none}
-  .cash-summary-strip{display:flex;gap:0;border-bottom:1px solid var(--border)}
-  .cash-summary-cell{flex:1;padding:12px 16px;border-right:1px solid var(--border)}
+  .cash-ledger-header{padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .cash-ledger-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+
+  /* Filter row — vehicle + month + year all on one line, wraps on mobile */
+  .cash-filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cash-filter-row select{flex:1;min-width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:'Syne',sans-serif;font-size:12px;outline:none;cursor:pointer}
+  .cash-filter-row select:focus{border-color:#06b6d4}
+  /* Vehicle select slightly wider */
+  .cash-filter-row #cashLedgerVehicle{flex:2;min-width:130px}
+
+  .cash-summary-strip{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto}
+  .cash-summary-cell{flex:1;min-width:90px;padding:12px 14px;border-right:1px solid var(--border)}
   .cash-summary-cell:last-child{border-right:none}
   .cash-summary-cell .csc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:600}
-  .cash-summary-cell .csc-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700}
+  .cash-summary-cell .csc-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700}
+
+  /* Mobile: summary strip stacks as 2x2 */
+  @media(max-width:480px){
+    .cash-summary-strip{flex-wrap:wrap}
+    .cash-summary-cell{flex:1 1 48%;border-right:none;border-bottom:1px solid var(--border)}
+    .cash-summary-cell:nth-child(odd){border-right:1px solid var(--border)}
+  }
+
   .cash-entry-row{display:flex;align-items:flex-start;gap:12px;padding:12px 18px;border-bottom:1px solid #1f1f2e55;transition:background .15s}
   .cash-entry-row:last-child{border-bottom:none}
   .cash-entry-row:hover{background:#ffffff04}
-  .cash-date-col{width:54px;flex-shrink:0;text-align:center}
-  .cash-date-day{font-size:20px;font-weight:800;color:var(--accent);line-height:1;font-family:'JetBrains Mono',monospace}
+  .cash-date-col{width:46px;flex-shrink:0;text-align:center}
+  .cash-date-day{font-size:18px;font-weight:800;color:var(--accent);line-height:1;font-family:'JetBrains Mono',monospace}
   .cash-date-mon{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  .cash-body{flex:1}
+  .cash-body{flex:1;min-width:0}
   .cash-type-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;margin-bottom:4px}
-  .cash-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px}
-  .cash-amt{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;white-space:nowrap;color:#06b6d4}
+  .cash-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px;word-break:break-word}
+  .cash-amt{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap;color:#06b6d4}
   .cash-running{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;text-align:right}
+
+  /* Amount col never squishes */
+  .cash-amt-col{text-align:right;flex-shrink:0;min-width:80px}
+
   .btn-cash-save{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;background:#06b6d4;color:#000;transition:opacity .2s,transform .1s;margin-top:6px}
   .btn-cash-save:active{transform:scale(.98)}
   .btn-cash-save:disabled{opacity:.5}
   .cash-empty{text-align:center;color:var(--muted);padding:40px 0;font-size:13px}
-  .salary-box{background:var(--surface);border:1px solid #06b6d433;border-radius:10px;padding:14px 18px;margin:0 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .salary-box{background:var(--surface);border:1px solid #06b6d422;border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
   .salary-box .sb-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600}
   .salary-box .sb-note{font-size:11px;color:var(--muted);margin-top:2px}
 
@@ -186,6 +211,8 @@
     .exp-name{width:100px}
     th,td{padding:8px;font-size:11px}
     .compare-grid{grid-template-columns:1fr}
+    .cash-entry-row{padding:10px 12px;gap:8px}
+    .cash-form-card{position:static}
   }
 
   /* ── User badge in header ── */
@@ -196,8 +223,6 @@
 </style>
 </head>
 <body>
-
-<!-- No config modal in production — credentials are hardcoded in JS below -->
 
 <!-- App Header -->
 <div id="app-header">
@@ -251,6 +276,7 @@
         <select class="select" id="addExpType">
           <option>Toll</option><option>Parking</option><option>Fuel</option>
           <option>Vehicle FC/Registration</option><option>Medical</option><option>Other</option>
+          <option>CASH CARD</option>
         </select>
       </div>
       <div class="field">
@@ -316,56 +342,63 @@
     <div class="cash-layout">
 
       <!-- Left: Add form -->
-      <div class="cash-form-card">
-        <div class="cash-form-title">💵 Record Cash Payment</div>
-        <div class="field">
-          <label class="label">Vehicle No.</label>
-          <select class="select" id="cashVehicle">
-            <option value="">Select vehicle...</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="label">Cash Type</label>
-          <select class="select" id="cashType">
-            <option value="Petty Cash">Petty Cash</option>
-            <option value="Cash Order">Cash Order</option>
-            <option value="Advance Salary">Advance Salary</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="label">Date</label>
-          <input type="date" class="input" id="cashDate"/>
-        </div>
-        <div class="field">
-          <label class="label">Amount (S$)</label>
-          <input type="number" class="input mono" id="cashAmount" placeholder="0.00" style="font-size:20px;font-weight:700;color:#06b6d4"/>
-        </div>
-        <div class="field">
-          <label class="label">Notes / Purpose</label>
-          <textarea class="textarea" id="cashNote" rows="3" placeholder="e.g. Advance to Raju driver, petrol advance..."></textarea>
-        </div>
-        <button class="btn-cash-save" id="cashSaveBtn" onclick="saveCash()">Record Cash Payment</button>
-        <div class="toast" id="cashToast"></div>
+      <div class="cash-form-col">
+        <div class="cash-form-card">
+          <div class="cash-form-title">💵 Record Cash Payment</div>
+          <div class="field">
+            <label class="label">Vehicle No.</label>
+            <select class="select" id="cashVehicle">
+              <option value="">Select vehicle...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">Cash Type</label>
+            <select class="select" id="cashType">
+              <option value="Petty Cash">Petty Cash</option>
+              <option value="Cash Order">Cash Order</option>
+              <option value="Advance Salary">Advance Salary</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">Date</label>
+            <input type="date" class="input" id="cashDate"/>
+          </div>
+          <div class="field">
+            <label class="label">Amount (S$)</label>
+            <input type="number" class="input mono" id="cashAmount" placeholder="0.00" style="font-size:20px;font-weight:700;color:#06b6d4"/>
+          </div>
+          <div class="field">
+            <label class="label">Notes / Purpose</label>
+            <textarea class="textarea" id="cashNote" rows="3" placeholder="e.g. Advance to Raju driver, petrol advance..."></textarea>
+          </div>
+          <button class="btn-cash-save" id="cashSaveBtn" onclick="saveCash()">Record Cash Payment</button>
+          <div class="toast" id="cashToast"></div>
 
-        <!-- Salary adjustment hint box -->
-        <div style="margin-top:16px;background:var(--bg);border:1px solid #06b6d422;border-radius:10px;padding:14px">
-          <div style="font-size:10px;color:#06b6d4;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px">How Salary Adjustment Works</div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.8">
-            • Every cash paid out is recorded here<br>
-            • At month end, sum all cash entries<br>
-            • <b style="color:var(--text)">Net Salary = Gross Salary − Total Cash Paid</b><br>
-            • Use the ledger filter to pick month &amp; see exactly what to deduct
+          <!-- Salary adjustment hint box -->
+          <div style="margin-top:16px;background:var(--bg);border:1px solid #06b6d422;border-radius:10px;padding:14px">
+            <div style="font-size:10px;color:#06b6d4;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px">How Salary Adjustment Works</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.8">
+              • Every cash paid out is recorded here<br>
+              • At month end, sum all cash entries<br>
+              • <b style="color:var(--text)">Net Salary = Gross Salary − Total Cash Paid</b><br>
+              • Use the ledger filter to pick vehicle &amp; month to see exact deductions
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Right: Ledger -->
-      <div>
+      <div class="cash-ledger-col">
         <div class="cash-ledger">
+
+          <!-- Header with ALL filters: vehicle + month + year -->
           <div class="cash-ledger-header">
-            <span class="cash-ledger-title">Cash Ledger</span>
-            <div class="cash-month-filters">
+            <div class="cash-ledger-title">Cash Ledger</div>
+            <div class="cash-filter-row">
+              <select id="cashLedgerVehicle" onchange="loadCash()">
+                <option value="">All Vehicles</option>
+              </select>
               <select id="cashMonth" onchange="loadCash()"></select>
               <select id="cashYear"  onchange="loadCash()"></select>
             </div>
@@ -392,11 +425,11 @@
           </div>
 
           <!-- Salary box -->
-          <div style="padding:12px 18px;border-bottom:1px solid var(--border)" id="cashSalaryBox" style="display:none">
+          <div style="padding:12px 18px;border-bottom:1px solid var(--border)" id="cashSalaryBox">
             <div class="salary-box">
               <div>
                 <div class="sb-label">Salary Adjustment This Month</div>
-                <div class="sb-note">Deduct total cash paid from gross salary</div>
+                <div class="sb-note" id="cashSalaryVehicleLabel">Select a vehicle to see deduction</div>
               </div>
               <div style="text-align:right">
                 <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Total to deduct</div>
@@ -454,82 +487,26 @@
 // ═══════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════
-const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTHS_S     = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const VCOLS        = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
+const MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 
 // ═══════════════════════════════════════════════
-//  STATE
+//  ⚙️  SUPABASE CONFIG
 // ═══════════════════════════════════════════════
-// ═══════════════════════════════════════════════
-//  ⚙️  SUPABASE CONFIG — edit these two lines
-// ═══════════════════════════════════════════════
-
-const SB_URL     = "%%SUPABASE_URL%%";
+const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
 
 
-// Supabase Auth client (handles login + session JWT automatically)
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
-let session = null; // set after auth guard confirms session
+let session = null;
 
-/*
-  ── SUPABASE SQL SETUP (run once in SQL editor) ─────────────────────────────
-
-  CREATE TABLE earnings (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    vehicle TEXT NOT NULL, amount NUMERIC NOT NULL,
-    note TEXT DEFAULT '', date DATE NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-  );
-  CREATE TABLE expenses (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    vehicle TEXT NOT NULL, amount NUMERIC NOT NULL,
-    expense_type TEXT NOT NULL, note TEXT DEFAULT '',
-    date DATE NOT NULL, created_at TIMESTAMPTZ DEFAULT now()
-  );
-  CREATE TABLE cash_on_hand (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    vehicle TEXT NOT NULL,
-    cash_type TEXT NOT NULL, amount NUMERIC NOT NULL,
-    note TEXT DEFAULT '', date DATE NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-  );
-
-  ALTER TABLE earnings     ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE expenses     ENABLE ROW LEVEL SECURITY;
-  ALTER TABLE cash_on_hand ENABLE ROW LEVEL SECURITY;
-
-  -- Authenticated users only (requires Supabase Auth)
-  -- TO authenticated = must be logged in. USING/WITH CHECK (true) = full shared fleet access.
-  CREATE POLICY "auth_select_vehicles"  ON vehicles     FOR SELECT TO authenticated USING (true);
-  CREATE POLICY "auth_insert_vehicles"  ON vehicles     FOR INSERT TO authenticated WITH CHECK (true);
-  CREATE POLICY "auth_update_vehicles"  ON vehicles     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-  CREATE POLICY "auth_delete_vehicles"  ON vehicles     FOR DELETE TO authenticated USING (true);
-
-  CREATE POLICY "auth_select_earnings"  ON earnings     FOR SELECT TO authenticated USING (true);
-  CREATE POLICY "auth_insert_earnings"  ON earnings     FOR INSERT TO authenticated WITH CHECK (true);
-  CREATE POLICY "auth_update_earnings"  ON earnings     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-  CREATE POLICY "auth_delete_earnings"  ON earnings     FOR DELETE TO authenticated USING (true);
-
-  CREATE POLICY "auth_select_expenses"  ON expenses     FOR SELECT TO authenticated USING (true);
-  CREATE POLICY "auth_insert_expenses"  ON expenses     FOR INSERT TO authenticated WITH CHECK (true);
-  CREATE POLICY "auth_update_expenses"  ON expenses     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-  CREATE POLICY "auth_delete_expenses"  ON expenses     FOR DELETE TO authenticated USING (true);
-
-  CREATE POLICY "auth_select_cash"      ON cash_on_hand FOR SELECT TO authenticated USING (true);
-  CREATE POLICY "auth_insert_cash"      ON cash_on_hand FOR INSERT TO authenticated WITH CHECK (true);
-  CREATE POLICY "auth_update_cash"      ON cash_on_hand FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-  CREATE POLICY "auth_delete_cash"      ON cash_on_hand FOR DELETE TO authenticated USING (true);
-
-  ────────────────────────────────────────────────────────────────────────────
-*/
-let DEMO_MODE = false; // always false in production
-let VEHICLES  = []; // loaded from DB on init
+let DEMO_MODE  = false;
+let VEHICLES   = [];
 let ENTRY_TYPE = 'earning';
 let activeVehicle = null;
-const CI = {}; // chart instances
-let demoE = [], demoX = [], demoCash = [], demoId = 1; // unused in production
+const CI = {};
+let demoE = [], demoX = [], demoCash = [], demoId = 1;
 
 // ═══════════════════════════════════════════════
 //  DATA LAYER
@@ -567,19 +544,16 @@ async function sbDelete(path) {
 }
 
 async function insertRow(table, row) {
-  if (DEMO_MODE) {
-    const r = { id:demoId++, created_at:new Date().toISOString(), ...row };
-    (table==='earnings' ? demoE : demoX).push(r); return r;
-  }
+  if (DEMO_MODE) { const r={id:demoId++,created_at:new Date().toISOString(),...row}; (table==='earnings'?demoE:demoX).push(r); return r; }
   const rows = await sbPost(`/rest/v1/${table}`, row); return rows[0];
 }
 async function getRows(table, vehicle, month, year) {
-  const ym = `${year}-${pad(month+1)}`;
-  if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.vehicle===vehicle && e.date.startsWith(ym));
+  const ym=`${year}-${pad(month+1)}`;
+  if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.vehicle===vehicle&&e.date.startsWith(ym));
   return sbGet(`/rest/v1/${table}?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-31&order=date.asc`);
 }
 async function getAllRows(table, month, year) {
-  const ym = `${year}-${pad(month+1)}`;
+  const ym=`${year}-${pad(month+1)}`;
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(ym));
   return sbGet(`/rest/v1/${table}?date=gte.${ym}-01&date=lte.${ym}-31`);
 }
@@ -587,25 +561,32 @@ async function getYear(table, year) {
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(String(year)));
   return sbGet(`/rest/v1/${table}?date=gte.${year}-01-01&date=lte.${year}-12-31&order=date.asc`);
 }
-async function getCashRows(month, year) {
-  const ym = `${year}-${pad(month+1)}`;
-  if (DEMO_MODE) return demoCash.filter(e => e.date.startsWith(ym));
-  return sbGet(`/rest/v1/cash_on_hand?date=gte.${ym}-01&date=lte.${ym}-31&order=date.desc,created_at.desc`);
+
+// ── getCashRows now accepts optional vehicle filter ──
+async function getCashRows(month, year, vehicle='') {
+  const ym=`${year}-${pad(month+1)}`;
+  if (DEMO_MODE) {
+    return demoCash.filter(e=>{
+      const matchDate=e.date.startsWith(ym);
+      const matchVeh=!vehicle||e.vehicle===vehicle;
+      return matchDate&&matchVeh;
+    });
+  }
+  let url=`/rest/v1/cash_on_hand?date=gte.${ym}-01&date=lte.${ym}-31&order=date.desc,created_at.desc`;
+  if (vehicle) url+=`&vehicle=eq.${encodeURIComponent(vehicle)}`;
+  return sbGet(url);
 }
 async function insertCash(row) {
-  if (DEMO_MODE) {
-    const r = { id:demoId++, created_at:new Date().toISOString(), ...row };
-    demoCash.push(r); return r;
-  }
+  if (DEMO_MODE) { const r={id:demoId++,created_at:new Date().toISOString(),...row}; demoCash.push(r); return r; }
   const rows = await sbPost(`/rest/v1/cash_on_hand`, row); return rows[0];
 }
 
 // ═══════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════
-const pad  = n => String(n).padStart(2,'0');
-const fmt  = n => 'S$ '+Number(n||0).toLocaleString('en-SG',{minimumFractionDigits:2});
-const fmtK = n => n>=100000?'S$ '+(n/100000).toFixed(1)+'L': n>=1000?'S$ '+(n/1000).toFixed(1)+'K':'S$ '+n;
+const pad   = n => String(n).padStart(2,'0');
+const fmt   = n => 'S$ '+Number(n||0).toLocaleString('en-SG',{minimumFractionDigits:2});
+const fmtK  = n => n>=100000?'S$ '+(n/100000).toFixed(1)+'L':n>=1000?'S$ '+(n/1000).toFixed(1)+'K':'S$ '+n;
 const todayStr = () => new Date().toISOString().slice(0,10);
 function detectClient(note='') {
   const u=note.toUpperCase();
@@ -623,23 +604,21 @@ function toast(id,msg,ok) {
   el.textContent=(ok?'✓ ':'✗ ')+msg; el.className='toast '+(ok?'ok':'err'); el.style.display='block';
   setTimeout(()=>el.style.display='none',3500);
 }
-function killChart(id) { if(CI[id]){CI[id].destroy();delete CI[id];} }
+function killChart(id){ if(CI[id]){CI[id].destroy();delete CI[id];} }
 
-// Chart.js theme defaults
-const CD = {
-  responsive:true, maintainAspectRatio:true,
+const CD={
+  responsive:true,maintainAspectRatio:true,
   plugins:{
-    legend:{ labels:{ color:'#e4e4f0', font:{family:"'Syne',sans-serif",size:11}, boxWidth:12, padding:14 } },
-    tooltip:{ backgroundColor:'#14141e', borderColor:'#1f1f2e', borderWidth:1,
-      titleColor:'#f0a500', bodyColor:'#e4e4f0', padding:10,
+    legend:{labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:11},boxWidth:12,padding:14}},
+    tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,
+      titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:10,
       titleFont:{family:"'Syne',sans-serif",weight:'bold',size:12},
       bodyFont:{family:"'JetBrains Mono',monospace",size:11},
-      callbacks:{ label: ctx=>' '+fmtK(ctx.raw) }
-    }
+      callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}
   },
   scales:{
-    x:{ ticks:{color:'#52526a',font:{family:"'Syne',sans-serif",size:10}}, grid:{color:'#1f1f2e'} },
-    y:{ ticks:{color:'#52526a',font:{family:"'JetBrains Mono',monospace",size:10},callback:v=>fmtK(v)}, grid:{color:'#1f1f2e'} }
+    x:{ticks:{color:'#52526a',font:{family:"'Syne',sans-serif",size:10}},grid:{color:'#1f1f2e'}},
+    y:{ticks:{color:'#52526a',font:{family:"'JetBrains Mono',monospace",size:10},callback:v=>fmtK(v)},grid:{color:'#1f1f2e'}}
   }
 };
 
@@ -647,7 +626,7 @@ const CD = {
 //  VEHICLES — DB-backed
 // ═══════════════════════════════════════════════
 async function loadVehiclesFromDB() {
-  if (DEMO_MODE) return; // demo uses hardcoded VEHICLES
+  if (DEMO_MODE) return;
   try {
     const rows = await sbGet('/rest/v1/vehicles?active=eq.true&order=created_at.asc');
     VEHICLES = rows.map(r => r.number);
@@ -656,47 +635,45 @@ async function loadVehiclesFromDB() {
 }
 
 async function addVehicle() {
-  const num   = (document.getElementById('vehNumber').value || '').trim().toUpperCase();
-  const label = (document.getElementById('vehLabel').value  || '').trim();
+  const num   = (document.getElementById('vehNumber').value||'').trim().toUpperCase();
+  const label = (document.getElementById('vehLabel').value||'').trim();
   if (!num) { toast('vehToast','Vehicle number is required.',false); return; }
   try {
-    await sbPost('/rest/v1/vehicles', { number: num, label, active: true });
-    document.getElementById('vehNumber').value = '';
-    document.getElementById('vehLabel').value  = '';
-    toast('vehToast', `${num} added to fleet!`, true);
+    await sbPost('/rest/v1/vehicles',{number:num,label,active:true});
+    document.getElementById('vehNumber').value='';
+    document.getElementById('vehLabel').value='';
+    toast('vehToast',`${num} added to fleet!`,true);
     await loadVehiclesFromDB();
     loadVehicleList();
-  } catch(e) { toast('vehToast', 'Error: ' + e.message, false); }
+  } catch(e){ toast('vehToast','Error: '+e.message,false); }
 }
 
-async function toggleVehicle(id, currentActive) {
+async function toggleVehicle(id,currentActive) {
   try {
-    await sbPatch('/rest/v1/vehicles?id=eq.' + id, { active: !currentActive });
-    await loadVehiclesFromDB();
-    loadVehicleList();
-  } catch(e) { alert('Error: ' + e.message); }
+    await sbPatch('/rest/v1/vehicles?id=eq.'+id,{active:!currentActive});
+    await loadVehiclesFromDB(); loadVehicleList();
+  } catch(e){ alert('Error: '+e.message); }
 }
 
-async function deleteVehicle(id, number) {
+async function deleteVehicle(id,number) {
   if (!confirm(`Remove ${number} from fleet?\nThis does NOT delete its earnings/expenses history.`)) return;
   try {
-    await sbDelete('/rest/v1/vehicles?id=eq.' + id);
-    await loadVehiclesFromDB();
-    loadVehicleList();
-  } catch(e) { alert('Error: ' + e.message); }
+    await sbDelete('/rest/v1/vehicles?id=eq.'+id);
+    await loadVehiclesFromDB(); loadVehicleList();
+  } catch(e){ alert('Error: '+e.message); }
 }
 
 async function loadVehicleList() {
-  const el = document.getElementById('vehList');
-  const countEl = document.getElementById('vehCount');
+  const el=document.getElementById('vehList');
+  const countEl=document.getElementById('vehCount');
   if (!el) return;
-  el.innerHTML = '<div class="no-data" style="padding:30px 0">Loading...</div>';
+  el.innerHTML='<div class="no-data" style="padding:30px 0">Loading...</div>';
   try {
-    const rows = await sbGet('/rest/v1/vehicles?order=created_at.asc');
-    const active = rows.filter(r => r.active).length;
-    countEl.textContent = `${active} active · ${rows.length} total`;
-    if (!rows.length) { el.innerHTML = '<div class="no-data" style="padding:40px 0">No vehicles yet. Add one above.</div>'; return; }
-    el.innerHTML = rows.map(r => `
+    const rows=await sbGet('/rest/v1/vehicles?order=created_at.asc');
+    const active=rows.filter(r=>r.active).length;
+    countEl.textContent=`${active} active · ${rows.length} total`;
+    if (!rows.length){el.innerHTML='<div class="no-data" style="padding:40px 0">No vehicles yet. Add one above.</div>';return;}
+    el.innerHTML=rows.map(r=>`
       <div style="display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #1f1f2e55;transition:background .15s" onmouseover="this.style.background='#ffffff05'" onmouseout="this.style.background=''">
         <div style="width:10px;height:10px;border-radius:50%;background:${r.active?'var(--green)':'var(--muted)'};flex-shrink:0"></div>
         <div style="flex:1">
@@ -709,14 +686,14 @@ async function loadVehicleList() {
         <div style="display:flex;gap:6px;flex-shrink:0">
           <button onclick="toggleVehicle('${r.id}',${r.active})"
             style="padding:5px 12px;border-radius:6px;border:1px solid ${r.active?'#ef444444':'#22c55e44'};background:${r.active?'var(--red-dim)':'var(--green-dim)'};color:${r.active?'var(--red)':'var(--green)'};font-family:Syne,sans-serif;font-size:11px;font-weight:700;cursor:pointer">
-            ${r.active ? 'Deactivate' : 'Activate'}
+            ${r.active?'Deactivate':'Activate'}
           </button>
           <button onclick="deleteVehicle('${r.id}','${r.number}')"
             style="padding:5px 10px;border-radius:6px;border:1px solid #ef444433;background:transparent;color:var(--red);font-family:Syne,sans-serif;font-size:12px;cursor:pointer" title="Delete vehicle">✕</button>
         </div>
       </div>`).join('');
-  } catch(e) {
-    el.innerHTML = `<div class="no-data" style="color:var(--red);padding:30px 0">Error: ${e.message}</div>`;
+  } catch(e){
+    el.innerHTML=`<div class="no-data" style="color:var(--red);padding:30px 0">Error: ${e.message}</div>`;
   }
 }
 
@@ -724,21 +701,42 @@ async function loadVehicleList() {
 //  INIT SELECTS
 // ═══════════════════════════════════════════════
 function populateVehicleSelects() {
-  ['addVehicle','histVehicle','cashVehicle'].forEach(id=>{
+  // Add-entry & cash-form vehicle selects (no blank "all" option)
+  ['addVehicle','cashVehicle'].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const cur=el.value;
-    el.innerHTML=(id==='histVehicle'?'<option value="">Select Vehicle</option>':'<option value="">Select vehicle...</option>');
+    el.innerHTML='<option value="">Select vehicle...</option>';
     VEHICLES.forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
     if(cur) el.value=cur;
   });
+  // History vehicle select
+  const hv=document.getElementById('histVehicle');
+  if(hv){
+    const cur=hv.value;
+    hv.innerHTML='<option value="">Select Vehicle</option>';
+    VEHICLES.forEach(v=>hv.innerHTML+=`<option value="${v}">${v}</option>`);
+    if(cur) hv.value=cur;
+  }
+  // Cash LEDGER vehicle filter (has "All Vehicles" option)
+  const clv=document.getElementById('cashLedgerVehicle');
+  if(clv){
+    const cur=clv.value;
+    clv.innerHTML='<option value="">All Vehicles</option>';
+    VEHICLES.forEach(v=>clv.innerHTML+=`<option value="${v}">${v}</option>`);
+    if(cur) clv.value=cur;
+  }
 }
+
 function populateDateSelects() {
   const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
-  ['histMonth','dashMonth'].forEach(id=>{ document.getElementById(id).innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join(''); });
-  ['histYear','dashYear','chartYear','cashYear'].forEach(id=>{ document.getElementById(id).innerHTML=[2024,2025,2026].map(yr=>`<option value="${yr}"${yr===y?' selected':''}>${yr}</option>`).join(''); });
-  // cash month
-  const cashMonEl = document.getElementById('cashMonth');
-  if (cashMonEl) cashMonEl.innerHTML = MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
+  ['histMonth','dashMonth'].forEach(id=>{
+    document.getElementById(id).innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
+  });
+  ['histYear','dashYear','chartYear','cashYear'].forEach(id=>{
+    document.getElementById(id).innerHTML=[2024,2025,2026].map(yr=>`<option value="${yr}"${yr===y?' selected':''}>${yr}</option>`).join('');
+  });
+  const cashMonEl=document.getElementById('cashMonth');
+  if(cashMonEl) cashMonEl.innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -766,7 +764,7 @@ function setType(t) {
 document.getElementById('addNote').addEventListener('input',function(){
   if(ENTRY_TYPE!=='earning') return;
   const det=document.getElementById('clientDetect');
-  if(this.value.trim()){ det.style.display='flex'; document.getElementById('detectedBadge').innerHTML=clientBadge(detectClient(this.value)); }
+  if(this.value.trim()){det.style.display='flex';document.getElementById('detectedBadge').innerHTML=clientBadge(detectClient(this.value));}
   else det.style.display='none';
 });
 async function saveEntry() {
@@ -780,7 +778,8 @@ async function saveEntry() {
     if(ENTRY_TYPE==='earning') await insertRow('earnings',{vehicle,amount,note,date});
     else await insertRow('expenses',{vehicle,amount,expense_type:document.getElementById('addExpType').value,note,date});
     toast('addToast',(ENTRY_TYPE==='earning'?'Earning':'Expense')+' saved!',true);
-    document.getElementById('addAmount').value=''; document.getElementById('addNote').value='';
+    document.getElementById('addAmount').value='';
+    document.getElementById('addNote').value='';
     document.getElementById('clientDetect').style.display='none';
   } catch(e){ toast('addToast','Error: '+e.message,false); }
   btn.disabled=false; setType(ENTRY_TYPE);
@@ -879,21 +878,13 @@ async function loadDashboard() {
     const grandJ=allE.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0);
     const grandO=allE.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0);
     const grandNet=grandE-grandX;
-    const TARGET = 6500; // S$ expectation per vehicle per month
+    const TARGET=6500;
     const rows=VEHICLES.map(v=>{
       const ve=allE.filter(e=>e.vehicle===v),vx=allX.filter(e=>e.vehicle===v);
       const te=ve.reduce((s,e)=>s+Number(e.amount),0),tx=vx.reduce((s,e)=>s+Number(e.amount),0);
-      // ── Incentive / Deduction logic ──────────────────
       let extraAchieved=0,incentive=0,underAchieved=0,deduction=0,perfStatus='';
-      if(te>=TARGET){
-        extraAchieved=te-TARGET;
-        incentive=extraAchieved*0.5;
-        perfStatus='over';
-      } else {
-        underAchieved=TARGET-te;
-        deduction=(underAchieved*3000)/TARGET;
-        perfStatus='under';
-      }
+      if(te>=TARGET){extraAchieved=te-TARGET;incentive=extraAchieved*0.5;perfStatus='over';}
+      else{underAchieved=TARGET-te;deduction=(underAchieved*3000)/TARGET;perfStatus='under';}
       return{v,te,tx,net:te-tx,
         kk:ve.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0),
         jj:ve.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0),
@@ -942,7 +933,7 @@ async function loadDashboard() {
       </tbody>
     </table></div></div>
 
-    <!-- ── Performance & Incentive Section ── -->
+    <!-- Performance & Incentive Section -->
     <div class="section-card" style="border-color:#f0a50033">
       <div class="section-title" style="color:var(--accent)">⚡ Performance vs Target — ${MONTHS[month]} ${year} &nbsp;<span style="font-size:9px;color:var(--muted);letter-spacing:0;font-weight:400;text-transform:none">Target per vehicle: S$ 6,500</span></div>
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
@@ -959,13 +950,9 @@ async function loadDashboard() {
       </div>
       <div class="dtable-wrap"><table>
         <thead><tr>
-          <th>Vehicle</th>
-          <th style="color:var(--green)">Earning</th>
-          <th>Status</th>
-          <th style="color:var(--green)">Extra Achieved</th>
-          <th style="color:var(--green)">Incentive (50%)</th>
-          <th style="color:var(--red)">Under Achieved</th>
-          <th style="color:var(--red)">Deduction</th>
+          <th>Vehicle</th><th style="color:var(--green)">Earning</th><th>Status</th>
+          <th style="color:var(--green)">Extra Achieved</th><th style="color:var(--green)">Incentive (50%)</th>
+          <th style="color:var(--red)">Under Achieved</th><th style="color:var(--red)">Deduction</th>
         </tr></thead>
         <tbody>
           ${rows.map(r=>`<tr>
@@ -981,8 +968,7 @@ async function loadDashboard() {
             <td class="mono" style="color:var(--red);font-weight:700">${r.perfStatus==='under'?fmt(r.deduction):'—'}</td>
           </tr>`).join('')}
           <tr style="border-top:2px solid var(--border)">
-            <td style="font-weight:700;color:var(--muted)">TOTAL</td>
-            <td></td><td></td>
+            <td style="font-weight:700;color:var(--muted)">TOTAL</td><td></td><td></td>
             <td class="mono" style="color:var(--green);font-weight:700">${fmt(rows.reduce((s,r)=>s+r.extraAchieved,0))}</td>
             <td class="mono" style="color:var(--green);font-weight:800">${fmt(totalIncentive)}</td>
             <td class="mono" style="color:var(--red);font-weight:700">${fmt(rows.reduce((s,r)=>s+r.underAchieved,0))}</td>
@@ -1000,24 +986,20 @@ async function loadDashboard() {
 }
 
 // ═══════════════════════════════════════════════
-//  CHARTS — MAIN LOADER
+//  CHARTS
 // ═══════════════════════════════════════════════
 async function loadCharts() {
-  const year  = parseInt(document.getElementById('chartYear').value);
-  const view  = document.getElementById('chartView').value;
-  const strip = document.getElementById('vTabStrip');
-  const el    = document.getElementById('chartsContent');
-
+  const year=parseInt(document.getElementById('chartYear').value);
+  const view=document.getElementById('chartView').value;
+  const strip=document.getElementById('vTabStrip');
+  const el=document.getElementById('chartsContent');
   Object.keys(CI).forEach(killChart);
   el.innerHTML='<div class="no-data">Loading data...</div>';
   strip.innerHTML='';
-
   try {
-    const [yearE,yearX] = await Promise.all([getYear('earnings',year),getYear('expenses',year)]);
-
-    // Build monthData[vehicle][0..11] = {earn,exp,net,kaira,jit,other}
-    const md = {};
-    VEHICLES.forEach(v=>{ md[v]=Array.from({length:12},()=>({earn:0,exp:0,net:0,kaira:0,jit:0,other:0})); });
+    const [yearE,yearX]=await Promise.all([getYear('earnings',year),getYear('expenses',year)]);
+    const md={};
+    VEHICLES.forEach(v=>{md[v]=Array.from({length:12},()=>({earn:0,exp:0,net:0,kaira:0,jit:0,other:0}));});
     yearE.forEach(e=>{
       const m=parseInt(e.date.split('-')[1])-1;
       if(!md[e.vehicle]) return;
@@ -1032,8 +1014,7 @@ async function loadCharts() {
       if(!md[e.vehicle]) return;
       md[e.vehicle][m].exp+=Number(e.amount);
     });
-    VEHICLES.forEach(v=>{ for(let m=0;m<12;m++) md[v][m].net=md[v][m].earn-md[v][m].exp; });
-
+    VEHICLES.forEach(v=>{for(let m=0;m<12;m++) md[v][m].net=md[v][m].earn-md[v][m].exp;});
     if(view==='individual'){
       if(!activeVehicle||!VEHICLES.includes(activeVehicle)) activeVehicle=VEHICLES[0];
       strip.innerHTML=VEHICLES.map(v=>`<button class="v-tab${v===activeVehicle?' active':''}" onclick="switchV('${v}',${year})">${v}</button>`).join('');
@@ -1043,17 +1024,15 @@ async function loadCharts() {
     } else {
       renderClientTrend(year,md);
     }
-  } catch(e){ el.innerHTML=`<div class="no-data" style="color:var(--red)">Error: ${e.message}</div>`; }
+  } catch(e){el.innerHTML=`<div class="no-data" style="color:var(--red)">Error: ${e.message}</div>`;}
 }
+function switchV(v,year){activeVehicle=v;loadCharts();}
 
-function switchV(v,year){ activeVehicle=v; loadCharts(); }
-
-// ── Individual vehicle ──────────────────────────
 function renderIndividual(vehicle,year,data) {
   const el=document.getElementById('chartsContent');
   const now=new Date().getMonth();
-  const pe=data[now>0?now-1:0].earn, ce=data[now].earn;
-  const pn=data[now>0?now-1:0].net,  cn=data[now].net;
+  const pe=data[now>0?now-1:0].earn,ce=data[now].earn;
+  const pn=data[now>0?now-1:0].net,cn=data[now].net;
   const pctChg=(prev,curr)=>prev>0?((curr-prev)/prev*100).toFixed(1):null;
   const badge=(diff,lbl)=>{
     if(diff===null) return `<span class="trend-badge t-fl">— N/A</span>`;
@@ -1063,121 +1042,33 @@ function renderIndividual(vehicle,year,data) {
   const ytdX=data.reduce((s,d)=>s+d.exp,0);
   const ytdN=data.reduce((s,d)=>s+d.net,0);
   const bestM=data.reduce((b,d,i)=>d.earn>data[b].earn?i:b,0);
-
   el.innerHTML=`
   <div class="stat-row">
-    <div class="stat-card" style="border-color:#22c55e33">
-      <div class="slabel">YTD Earnings</div><div class="sval" style="color:var(--green)">${fmtK(ytdE)}</div>
-      <div class="ssub">${badge(pctChg(pe,ce),'vs prev month')}</div>
-    </div>
-    <div class="stat-card" style="border-color:#ef444433">
-      <div class="slabel">YTD Expenses</div><div class="sval" style="color:var(--red)">${fmtK(ytdX)}</div>
-    </div>
-    <div class="stat-card" style="border-color:${ytdN>=0?'#22c55e33':'#ef444433'}">
-      <div class="slabel">YTD Net Profit</div><div class="sval" style="color:${ytdN>=0?'var(--green)':'var(--red)'}">${fmtK(ytdN)}</div>
-      <div class="ssub">${badge(pctChg(pn,cn),'vs prev month')}</div>
-    </div>
-    <div class="stat-card" style="border-color:var(--accent)33">
-      <div class="slabel">Best Month</div><div class="sval" style="color:var(--accent);font-size:16px">${MONTHS_S[bestM]}</div>
-      <div class="ssub">${fmtK(data[bestM].earn)}</div>
-    </div>
+    <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">YTD Earnings</div><div class="sval" style="color:var(--green)">${fmtK(ytdE)}</div><div class="ssub">${badge(pctChg(pe,ce),'vs prev month')}</div></div>
+    <div class="stat-card" style="border-color:#ef444433"><div class="slabel">YTD Expenses</div><div class="sval" style="color:var(--red)">${fmtK(ytdX)}</div></div>
+    <div class="stat-card" style="border-color:${ytdN>=0?'#22c55e33':'#ef444433'}"><div class="slabel">YTD Net Profit</div><div class="sval" style="color:${ytdN>=0?'var(--green)':'var(--red)'}">${fmtK(ytdN)}</div><div class="ssub">${badge(pctChg(pn,cn),'vs prev month')}</div></div>
+    <div class="stat-card" style="border-color:var(--accent)33"><div class="slabel">Best Month</div><div class="sval" style="color:var(--accent);font-size:16px">${MONTHS_S[bestM]}</div><div class="ssub">${fmtK(data[bestM].earn)}</div></div>
   </div>
-
-  <div class="chart-wrap">
-    <div class="chart-title">Earnings vs Expenses — ${vehicle} · ${year}</div>
-    <div class="chart-sub">Monthly comparison of income and spending</div>
-    <canvas id="ch-ee"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Net Profit Trend — ${vehicle} · ${year}</div>
-    <div class="chart-sub">Green dots = profitable months · Red dots = loss months</div>
-    <canvas id="ch-net"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Client Earnings Breakdown — ${vehicle} · ${year}</div>
-    <div class="chart-sub">KAIRA · JIT · Others stacked per month</div>
-    <canvas id="ch-cli"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Expense Ratio % — ${vehicle} · ${year}</div>
-    <div class="chart-sub">% of earnings spent. Green &lt;40% · Amber 40–70% · Red &gt;70%</div>
-    <canvas id="ch-ratio"></canvas>
-  </div>`;
-
-  // Earnings vs Expenses grouped bar
-  CI['ch-ee']=new Chart(document.getElementById('ch-ee'),{
-    type:'bar', data:{ labels:MONTHS_S, datasets:[
-      {label:'Earnings',data:data.map(d=>d.earn),backgroundColor:'#22c55e55',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4},
-      {label:'Expenses',data:data.map(d=>d.exp), backgroundColor:'#ef444455',borderColor:'#ef4444',borderWidth:1.5,borderRadius:4}
-    ]}, options:{...CD}
-  });
-
-  // Net profit line
-  CI['ch-net']=new Chart(document.getElementById('ch-net'),{
-    type:'line', data:{ labels:MONTHS_S, datasets:[{
-      label:'Net Profit', data:data.map(d=>d.net),
-      borderColor:'#f0a500', backgroundColor:'#f0a50020',
-      pointBackgroundColor:data.map(d=>d.net>=0?'#22c55e':'#ef4444'),
-      pointBorderColor:'#09090d', pointRadius:5, pointHoverRadius:7,
-      tension:.35, fill:true, borderWidth:2
-    }]}, options:{...CD}
-  });
-
-  // Client stacked bar
-  CI['ch-cli']=new Chart(document.getElementById('ch-cli'),{
-    type:'bar', data:{ labels:MONTHS_S, datasets:[
-      {label:'KAIRA', data:data.map(d=>d.kaira),backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:2},
-      {label:'JIT',   data:data.map(d=>d.jit),  backgroundColor:'#06b6d499',borderColor:'#06b6d4',borderWidth:1,borderRadius:2},
-      {label:'Others',data:data.map(d=>d.other), backgroundColor:'#a78bfa99',borderColor:'#a78bfa',borderWidth:1,borderRadius:2}
-    ]}, options:{...CD, scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}
-  });
-
-  // Expense ratio
+  <div class="chart-wrap"><div class="chart-title">Earnings vs Expenses — ${vehicle} · ${year}</div><div class="chart-sub">Monthly comparison of income and spending</div><canvas id="ch-ee"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Net Profit Trend — ${vehicle} · ${year}</div><div class="chart-sub">Green dots = profitable months · Red dots = loss months</div><canvas id="ch-net"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Client Earnings Breakdown — ${vehicle} · ${year}</div><div class="chart-sub">KAIRA · JIT · Others stacked per month</div><canvas id="ch-cli"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Expense Ratio % — ${vehicle} · ${year}</div><div class="chart-sub">% of earnings spent. Green &lt;40% · Amber 40–70% · Red &gt;70%</div><canvas id="ch-ratio"></canvas></div>`;
+  CI['ch-ee']=new Chart(document.getElementById('ch-ee'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'Earnings',data:data.map(d=>d.earn),backgroundColor:'#22c55e55',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4},{label:'Expenses',data:data.map(d=>d.exp),backgroundColor:'#ef444455',borderColor:'#ef4444',borderWidth:1.5,borderRadius:4}]},options:{...CD}});
+  CI['ch-net']=new Chart(document.getElementById('ch-net'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'Net Profit',data:data.map(d=>d.net),borderColor:'#f0a500',backgroundColor:'#f0a50020',pointBackgroundColor:data.map(d=>d.net>=0?'#22c55e':'#ef4444'),pointBorderColor:'#09090d',pointRadius:5,pointHoverRadius:7,tension:.35,fill:true,borderWidth:2}]},options:{...CD}});
+  CI['ch-cli']=new Chart(document.getElementById('ch-cli'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:data.map(d=>d.kaira),backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:2},{label:'JIT',data:data.map(d=>d.jit),backgroundColor:'#06b6d499',borderColor:'#06b6d4',borderWidth:1,borderRadius:2},{label:'Others',data:data.map(d=>d.other),backgroundColor:'#a78bfa99',borderColor:'#a78bfa',borderWidth:1,borderRadius:2}]},options:{...CD,scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}});
   const ratio=data.map(d=>d.earn>0?+((d.exp/d.earn)*100).toFixed(1):0);
-  CI['ch-ratio']=new Chart(document.getElementById('ch-ratio'),{
-    type:'line', data:{ labels:MONTHS_S, datasets:[{
-      label:'Expense %', data:ratio,
-      borderColor:'#a78bfa', backgroundColor:'#a78bfa20',
-      pointBackgroundColor:ratio.map(v=>v>70?'#ef4444':v>40?'#f59e0b':'#22c55e'),
-      pointBorderColor:'#09090d', pointRadius:5, pointHoverRadius:7,
-      tension:.35, fill:true, borderWidth:2
-    }]}, options:{...CD, scales:{x:CD.scales.x,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v+'%'},max:110}}}
-  });
+  CI['ch-ratio']=new Chart(document.getElementById('ch-ratio'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'Expense %',data:ratio,borderColor:'#a78bfa',backgroundColor:'#a78bfa20',pointBackgroundColor:ratio.map(v=>v>70?'#ef4444':v>40?'#f59e0b':'#22c55e'),pointBorderColor:'#09090d',pointRadius:5,pointHoverRadius:7,tension:.35,fill:true,borderWidth:2}]},options:{...CD,scales:{x:CD.scales.x,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v+'%'},max:110}}}});
 }
 
-// ── Compare all vehicles ────────────────────────
 function renderCompare(year,md) {
   const el=document.getElementById('chartsContent');
-  const totals=VEHICLES.map((v,i)=>({
-    v,col:VCOLS[i%VCOLS.length],
-    earn:md[v].reduce((s,d)=>s+d.earn,0),
-    exp: md[v].reduce((s,d)=>s+d.exp,0),
-    net: md[v].reduce((s,d)=>s+d.net,0),
-    kaira:md[v].reduce((s,d)=>s+d.kaira,0),
-    jit:  md[v].reduce((s,d)=>s+d.jit,0),
-  }));
+  const totals=VEHICLES.map((v,i)=>({v,col:VCOLS[i%VCOLS.length],earn:md[v].reduce((s,d)=>s+d.earn,0),exp:md[v].reduce((s,d)=>s+d.exp,0),net:md[v].reduce((s,d)=>s+d.net,0),kaira:md[v].reduce((s,d)=>s+d.kaira,0),jit:md[v].reduce((s,d)=>s+d.jit,0)}));
   const maxE=Math.max(...totals.map(t=>t.earn),1);
-
   el.innerHTML=`
-  <div class="chart-wrap">
-    <div class="chart-title">Earnings Comparison — All Vehicles · ${year}</div>
-    <div class="chart-sub">Annual total earnings per vehicle</div>
-    <canvas id="ch-cmp-earn"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Net Profit Comparison — All Vehicles · ${year}</div>
-    <div class="chart-sub">Green = profit · Red = loss</div>
-    <canvas id="ch-cmp-net"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Month-wise Earnings Trend — All Vehicles · ${year}</div>
-    <div class="chart-sub">Overlapping lines show each vehicle's monthly performance</div>
-    <canvas id="ch-cmp-lines"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">Month-wise Expenses — All Vehicles · ${year}</div>
-    <canvas id="ch-cmp-exp"></canvas>
-  </div>
+  <div class="chart-wrap"><div class="chart-title">Earnings Comparison — All Vehicles · ${year}</div><div class="chart-sub">Annual total earnings per vehicle</div><canvas id="ch-cmp-earn"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Net Profit Comparison — All Vehicles · ${year}</div><div class="chart-sub">Green = profit · Red = loss</div><canvas id="ch-cmp-net"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Month-wise Earnings Trend — All Vehicles · ${year}</div><div class="chart-sub">Overlapping lines show each vehicle's monthly performance</div><canvas id="ch-cmp-lines"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Month-wise Expenses — All Vehicles · ${year}</div><canvas id="ch-cmp-exp"></canvas></div>
   <div class="section-title" style="margin-top:4px;margin-bottom:12px">VEHICLE PERFORMANCE CARDS — ${year}</div>
   <div class="compare-grid">
     ${totals.map((t,i)=>{
@@ -1186,121 +1077,55 @@ function renderCompare(year,md) {
       return `<div class="compare-card">
         <div class="cv-label" style="color:${t.col}">${t.v}</div>
         <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Earnings</div>
-            <div class="mono" style="font-size:15px;color:var(--green);font-weight:700">${fmtK(t.earn)}</div></div>
-          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Net</div>
-            <div class="mono" style="font-size:15px;color:${nc};font-weight:700">${fmtK(t.net)}</div></div>
+          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Earnings</div><div class="mono" style="font-size:15px;color:var(--green);font-weight:700">${fmtK(t.earn)}</div></div>
+          <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Net</div><div class="mono" style="font-size:15px;color:${nc};font-weight:700">${fmtK(t.net)}</div></div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:12px">
           <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">KAIRA</div><div class="mono" style="font-size:12px;color:var(--kaira)">${fmtK(t.kaira)}</div></div>
           <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">JIT</div><div class="mono" style="font-size:12px;color:var(--jit)">${fmtK(t.jit)}</div></div>
-          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">Exp Ratio</div>
-            <div class="mono" style="font-size:12px;color:${ratio>70?'var(--red)':ratio>40?'var(--kaira)':'var(--green)'}">${ratio}%</div></div>
+          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">Exp Ratio</div><div class="mono" style="font-size:12px;color:${ratio>70?'var(--red)':ratio>40?'var(--kaira)':'var(--green)'}">${ratio}%</div></div>
         </div>
-        <div style="height:4px;background:var(--border);border-radius:2px">
-          <div style="height:4px;border-radius:2px;background:${t.col};width:${(t.earn/maxE*100).toFixed(0)}%;transition:width .6s"></div>
-        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;border-radius:2px;background:${t.col};width:${(t.earn/maxE*100).toFixed(0)}%;transition:width .6s"></div></div>
       </div>`;
     }).join('')}
   </div>`;
-
-  CI['ch-cmp-earn']=new Chart(document.getElementById('ch-cmp-earn'),{
-    type:'bar', data:{labels:totals.map(t=>t.v), datasets:[{
-      label:'Total Earnings', data:totals.map(t=>t.earn),
-      backgroundColor:VCOLS.map(c=>c+'88'), borderColor:VCOLS, borderWidth:1.5, borderRadius:6
-    }]}, options:{...CD}
-  });
-  CI['ch-cmp-net']=new Chart(document.getElementById('ch-cmp-net'),{
-    type:'bar', data:{labels:totals.map(t=>t.v), datasets:[{
-      label:'Net Profit', data:totals.map(t=>t.net),
-      backgroundColor:totals.map(t=>t.net>=0?'#22c55e88':'#ef444488'),
-      borderColor:totals.map(t=>t.net>=0?'#22c55e':'#ef4444'), borderWidth:1.5, borderRadius:6
-    }]}, options:{...CD}
-  });
-  CI['ch-cmp-lines']=new Chart(document.getElementById('ch-cmp-lines'),{
-    type:'line', data:{labels:MONTHS_S, datasets:VEHICLES.map((v,i)=>({
-      label:v, data:md[v].map(d=>d.earn),
-      borderColor:VCOLS[i%VCOLS.length], backgroundColor:'transparent',
-      pointBackgroundColor:VCOLS[i%VCOLS.length], pointRadius:3,
-      tension:.35, borderWidth:2
-    }))}, options:{...CD}
-  });
-  CI['ch-cmp-exp']=new Chart(document.getElementById('ch-cmp-exp'),{
-    type:'bar', data:{labels:MONTHS_S, datasets:VEHICLES.map((v,i)=>({
-      label:v, data:md[v].map(d=>d.exp),
-      backgroundColor:VCOLS[i%VCOLS.length]+'88', borderColor:VCOLS[i%VCOLS.length], borderWidth:1, borderRadius:3
-    }))}, options:{...CD, scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}
-  });
+  CI['ch-cmp-earn']=new Chart(document.getElementById('ch-cmp-earn'),{type:'bar',data:{labels:totals.map(t=>t.v),datasets:[{label:'Total Earnings',data:totals.map(t=>t.earn),backgroundColor:VCOLS.map(c=>c+'88'),borderColor:VCOLS,borderWidth:1.5,borderRadius:6}]},options:{...CD}});
+  CI['ch-cmp-net']=new Chart(document.getElementById('ch-cmp-net'),{type:'bar',data:{labels:totals.map(t=>t.v),datasets:[{label:'Net Profit',data:totals.map(t=>t.net),backgroundColor:totals.map(t=>t.net>=0?'#22c55e88':'#ef444488'),borderColor:totals.map(t=>t.net>=0?'#22c55e':'#ef4444'),borderWidth:1.5,borderRadius:6}]},options:{...CD}});
+  CI['ch-cmp-lines']=new Chart(document.getElementById('ch-cmp-lines'),{type:'line',data:{labels:MONTHS_S,datasets:VEHICLES.map((v,i)=>({label:v,data:md[v].map(d=>d.earn),borderColor:VCOLS[i%VCOLS.length],backgroundColor:'transparent',pointBackgroundColor:VCOLS[i%VCOLS.length],pointRadius:3,tension:.35,borderWidth:2}))},options:{...CD}});
+  CI['ch-cmp-exp']=new Chart(document.getElementById('ch-cmp-exp'),{type:'bar',data:{labels:MONTHS_S,datasets:VEHICLES.map((v,i)=>({label:v,data:md[v].map(d=>d.exp),backgroundColor:VCOLS[i%VCOLS.length]+'88',borderColor:VCOLS[i%VCOLS.length],borderWidth:1,borderRadius:3}))},options:{...CD,scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}});
 }
 
-// ── Client trend ────────────────────────────────
 function renderClientTrend(year,md) {
   const el=document.getElementById('chartsContent');
   const fK=Array(12).fill(0),fJ=Array(12).fill(0),fO=Array(12).fill(0);
-  VEHICLES.forEach(v=>{ for(let m=0;m<12;m++){fK[m]+=md[v][m].kaira;fJ[m]+=md[v][m].jit;fO[m]+=md[v][m].other;} });
-
+  VEHICLES.forEach(v=>{for(let m=0;m<12;m++){fK[m]+=md[v][m].kaira;fJ[m]+=md[v][m].jit;fO[m]+=md[v][m].other;}});
   el.innerHTML=`
-  <div class="chart-wrap">
-    <div class="chart-title">Fleet Client Earnings Trend — ${year}</div>
-    <div class="chart-sub">Monthly KAIRA · JIT · Others across all vehicles</div>
-    <canvas id="ch-flt"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <div class="chart-title">KAIRA vs JIT Head-to-Head — ${year}</div>
-    <div class="chart-sub">Direct monthly comparison of your two major clients</div>
-    <canvas id="ch-kj"></canvas>
-  </div>
+  <div class="chart-wrap"><div class="chart-title">Fleet Client Earnings Trend — ${year}</div><div class="chart-sub">Monthly KAIRA · JIT · Others across all vehicles</div><canvas id="ch-flt"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">KAIRA vs JIT Head-to-Head — ${year}</div><div class="chart-sub">Direct monthly comparison of your two major clients</div><canvas id="ch-kj"></canvas></div>
   <div class="section-title" style="margin-bottom:12px">CLIENT MIX PER VEHICLE — ${year}</div>
   <div class="compare-grid">
     ${VEHICLES.map((v,i)=>`<div class="compare-card"><div class="cv-label" style="color:${VCOLS[i%VCOLS.length]}">${v}</div><canvas id="ch-mix-${i}" style="max-height:150px"></canvas></div>`).join('')}
   </div>`;
-
-  CI['ch-flt']=new Chart(document.getElementById('ch-flt'),{
-    type:'line', data:{labels:MONTHS_S, datasets:[
-      {label:'KAIRA',data:fK,borderColor:'#f59e0b',backgroundColor:'#f59e0b28',fill:true,tension:.4,borderWidth:2},
-      {label:'JIT',  data:fJ,borderColor:'#06b6d4',backgroundColor:'#06b6d428',fill:true,tension:.4,borderWidth:2},
-      {label:'Others',data:fO,borderColor:'#a78bfa',backgroundColor:'#a78bfa28',fill:true,tension:.4,borderWidth:2}
-    ]}, options:{...CD}
-  });
-  CI['ch-kj']=new Chart(document.getElementById('ch-kj'),{
-    type:'bar', data:{labels:MONTHS_S, datasets:[
-      {label:'KAIRA',data:fK,backgroundColor:'#f59e0b88',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4},
-      {label:'JIT',  data:fJ,backgroundColor:'#06b6d488',borderColor:'#06b6d4',borderWidth:1.5,borderRadius:4}
-    ]}, options:{...CD}
-  });
+  CI['ch-flt']=new Chart(document.getElementById('ch-flt'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:fK,borderColor:'#f59e0b',backgroundColor:'#f59e0b28',fill:true,tension:.4,borderWidth:2},{label:'JIT',data:fJ,borderColor:'#06b6d4',backgroundColor:'#06b6d428',fill:true,tension:.4,borderWidth:2},{label:'Others',data:fO,borderColor:'#a78bfa',backgroundColor:'#a78bfa28',fill:true,tension:.4,borderWidth:2}]},options:{...CD}});
+  CI['ch-kj']=new Chart(document.getElementById('ch-kj'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:fK,backgroundColor:'#f59e0b88',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4},{label:'JIT',data:fJ,backgroundColor:'#06b6d488',borderColor:'#06b6d4',borderWidth:1.5,borderRadius:4}]},options:{...CD}});
   VEHICLES.forEach((v,i)=>{
     const d=md[v];
     const tK=d.reduce((s,x)=>s+x.kaira,0),tJ=d.reduce((s,x)=>s+x.jit,0),tO=d.reduce((s,x)=>s+x.other,0);
     const cid=`ch-mix-${i}`;
-    CI[cid]=new Chart(document.getElementById(cid),{
-      type:'doughnut',
-      data:{labels:['KAIRA','JIT','Others'],datasets:[{
-        data:[tK,tJ,tO],
-        backgroundColor:['#f59e0b99','#06b6d499','#a78bfa99'],
-        borderColor:['#f59e0b','#06b6d4','#a78bfa'],borderWidth:1.5
-      }]},
-      options:{responsive:true,maintainAspectRatio:true,cutout:'62%',
-        plugins:{
-          legend:{position:'bottom',labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:10},boxWidth:10,padding:10}},
-          tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:8,callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}
-        }
-      }
-    });
+    CI[cid]=new Chart(document.getElementById(cid),{type:'doughnut',data:{labels:['KAIRA','JIT','Others'],datasets:[{data:[tK,tJ,tO],backgroundColor:['#f59e0b99','#06b6d499','#a78bfa99'],borderColor:['#f59e0b','#06b6d4','#a78bfa'],borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:10},boxWidth:10,padding:10}},tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:8,callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}}}});
   });
 }
 
 // ═══════════════════════════════════════════════
 //  CASH ON HAND
 // ═══════════════════════════════════════════════
-const CASH_TYPE_STYLE = {
-  'Petty Cash':     { color:'var(--kaira)',  bg:'#f59e0b22', border:'#f59e0b44' },
-  'Cash Order':     { color:'var(--other)',  bg:'#a78bfa22', border:'#a78bfa44' },
-  'Advance Salary': { color:'var(--green)',  bg:'#22c55e18', border:'#22c55e44' },
-  'Other':          { color:'#06b6d4',       bg:'#06b6d422', border:'#06b6d444' },
+const CASH_TYPE_STYLE={
+  'Petty Cash':     {color:'var(--kaira)', bg:'#f59e0b22',border:'#f59e0b44'},
+  'Cash Order':     {color:'var(--other)', bg:'#a78bfa22',border:'#a78bfa44'},
+  'Advance Salary': {color:'var(--green)', bg:'#22c55e18',border:'#22c55e44'},
+  'Other':          {color:'#06b6d4',      bg:'#06b6d422',border:'#06b6d444'},
 };
-function cashStyle(type) {
-  return CASH_TYPE_STYLE[type] || CASH_TYPE_STYLE['Other'];
-}
+function cashStyle(type){ return CASH_TYPE_STYLE[type]||CASH_TYPE_STYLE['Other']; }
 
 async function saveCash() {
   const vehicle   = document.getElementById('cashVehicle').value;
@@ -1308,40 +1133,51 @@ async function saveCash() {
   const amount    = parseFloat(document.getElementById('cashAmount').value);
   const date      = document.getElementById('cashDate').value;
   const note      = document.getElementById('cashNote').value.trim();
-  if (!vehicle)        { toast('cashToast', 'Please select a vehicle.', false); return; }
-  if (!amount || !date){ toast('cashToast', 'Please fill amount and date.', false); return; }
-  const btn = document.getElementById('cashSaveBtn');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  if (!vehicle)         {toast('cashToast','Please select a vehicle.',false);return;}
+  if (!amount || !date) {toast('cashToast','Please fill amount and date.',false);return;}
+  const btn=document.getElementById('cashSaveBtn');
+  btn.disabled=true; btn.textContent='Saving...';
   try {
-    await insertCash({ vehicle, cash_type, amount, note, date });
-    toast('cashToast', 'Cash entry saved!', true);
-    document.getElementById('cashVehicle').value = '';
-    document.getElementById('cashAmount').value  = '';
-    document.getElementById('cashNote').value    = '';
+    await insertCash({vehicle,cash_type,amount,note,date});
+    toast('cashToast','Cash entry saved!',true);
+    document.getElementById('cashVehicle').value='';
+    document.getElementById('cashAmount').value='';
+    document.getElementById('cashNote').value='';
     loadCash();
-  } catch(e) { toast('cashToast', 'Error: ' + e.message, false); }
-  btn.disabled = false; btn.textContent = 'Record Cash Payment';
+  } catch(e){toast('cashToast','Error: '+e.message,false);}
+  btn.disabled=false; btn.textContent='Record Cash Payment';
 }
 
 async function loadCash() {
-  const month = parseInt(document.getElementById('cashMonth').value);
-  const year  = parseInt(document.getElementById('cashYear').value);
+  const month     = parseInt(document.getElementById('cashMonth').value);
+  const year      = parseInt(document.getElementById('cashYear').value);
+  // ★ NEW: read the vehicle filter from the ledger dropdown
+  const vehicle   = document.getElementById('cashLedgerVehicle').value;
+
   const entriesEl = document.getElementById('cashEntries');
   const stripEl   = document.getElementById('cashSummaryStrip');
   const deductEl  = document.getElementById('cashDeductTotal');
+  const labelEl   = document.getElementById('cashSalaryVehicleLabel');
 
-  entriesEl.innerHTML = '<div class="cash-empty">Loading...</div>';
+  entriesEl.innerHTML='<div class="cash-empty">Loading...</div>';
+
+  // Update salary box label
+  if (labelEl) {
+    labelEl.textContent = vehicle
+      ? `${vehicle} — deduct from salary`
+      : 'Select a vehicle to see per-driver deduction';
+  }
+
   try {
-    const rows = await getCashRows(month, year);
+    // ★ Pass vehicle filter through to the data layer
+    const rows = await getCashRows(month, year, vehicle);
 
-    // Totals
-    const total    = rows.reduce((s,r) => s + Number(r.amount), 0);
-    const petty    = rows.filter(r => r.cash_type === 'Petty Cash').reduce((s,r) => s + Number(r.amount), 0);
-    const orders   = rows.filter(r => r.cash_type === 'Cash Order').reduce((s,r) => s + Number(r.amount), 0);
-    const advances = rows.filter(r => r.cash_type === 'Advance Salary').reduce((s,r) => s + Number(r.amount), 0);
+    const total    = rows.reduce((s,r)=>s+Number(r.amount),0);
+    const petty    = rows.filter(r=>r.cash_type==='Petty Cash').reduce((s,r)=>s+Number(r.amount),0);
+    const orders   = rows.filter(r=>r.cash_type==='Cash Order').reduce((s,r)=>s+Number(r.amount),0);
+    const advances = rows.filter(r=>r.cash_type==='Advance Salary').reduce((s,r)=>s+Number(r.amount),0);
 
-    // Update summary strip
-    stripEl.innerHTML = `
+    stripEl.innerHTML=`
       <div class="cash-summary-cell">
         <div class="csc-label">Total Paid Out</div>
         <div class="csc-val" style="color:#06b6d4">${fmt(total)}</div>
@@ -1359,27 +1195,26 @@ async function loadCash() {
         <div class="csc-val" style="color:var(--green)">${fmt(advances)}</div>
       </div>`;
 
-    if (deductEl) deductEl.textContent = fmt(total);
+    if (deductEl) deductEl.textContent=fmt(total);
 
     if (!rows.length) {
-      entriesEl.innerHTML = '<div class="cash-empty">No cash entries for this month.</div>';
+      entriesEl.innerHTML=`<div class="cash-empty">${vehicle?`No cash entries for ${vehicle} this month.`:'No cash entries this month.'}</div>`;
       return;
     }
 
-    // Running total (chronological, but displayed newest-first)
-    // compute running totals oldest→newest then reverse for display
-    const sorted = [...rows].sort((a,b) => a.date.localeCompare(b.date));
-    let running = 0;
-    const withRunning = sorted.map(r => { running += Number(r.amount); return { ...r, running }; });
-    withRunning.reverse(); // newest first for display
+    // Running total — oldest→newest then reverse for display
+    const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date));
+    let running=0;
+    const withRunning=sorted.map(r=>{running+=Number(r.amount);return{...r,running};});
+    withRunning.reverse();
 
-    let html = '';
-    withRunning.forEach(r => {
-      const d   = new Date(r.date + 'T00:00:00');
-      const day = d.getDate();
-      const mon = d.toLocaleDateString('en-SG', { month:'short' });
-      const st  = cashStyle(r.cash_type);
-      html += `
+    let html='';
+    withRunning.forEach(r=>{
+      const d=new Date(r.date+'T00:00:00');
+      const day=d.getDate();
+      const mon=d.toLocaleDateString('en-SG',{month:'short'});
+      const st=cashStyle(r.cash_type);
+      html+=`
       <div class="cash-entry-row">
         <div class="cash-date-col">
           <div class="cash-date-day">${pad(day)}</div>
@@ -1388,20 +1223,20 @@ async function loadCash() {
         <div class="cash-body">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
             <span class="cash-type-badge" style="color:${st.color};background:${st.bg};border:1px solid ${st.border}">${r.cash_type}</span>
-            ${r.vehicle ? `<span class="mono" style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid #f0a50033;border-radius:4px;padding:1px 7px">${r.vehicle}</span>` : ''}
+            ${r.vehicle?`<span class="mono" style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid #f0a50033;border-radius:4px;padding:1px 7px">${r.vehicle}</span>`:''}
           </div>
-          ${r.note ? `<div class="cash-note">${r.note}</div>` : ''}
+          ${r.note?`<div class="cash-note">${r.note}</div>`:''}
         </div>
-        <div style="text-align:right;flex-shrink:0">
+        <div class="cash-amt-col">
           <div class="cash-amt">${fmt(r.amount)}</div>
-          <div class="cash-running">Running: ${fmt(r.running)}</div>
+          <div class="cash-running">Cumul: ${fmt(r.running)}</div>
         </div>
       </div>`;
     });
-    entriesEl.innerHTML = html;
+    entriesEl.innerHTML=html;
 
-  } catch(e) {
-    entriesEl.innerHTML = `<div class="cash-empty" style="color:var(--red)">Error: ${e.message}</div>`;
+  } catch(e){
+    entriesEl.innerHTML=`<div class="cash-empty" style="color:var(--red)">Error: ${e.message}</div>`;
   }
 }
 
@@ -1422,42 +1257,37 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
   });
 });
 
-// ═══════════════════════════════════════════════
-//  CONFIG — not used in production (credentials hardcoded above)
-// ═══════════════════════════════════════════════
-function openConfig(){ /* no-op in production */ }
-
-// Demo mode not available in production build
+function openConfig(){}
 
 // ══════════════════════════════════════════════
 //  AUTH GUARD
 // ══════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) { window.location.replace('./login.html'); return; }
-  const { data: { session: s } } = await sb.auth.getSession();
-  session = s;
-  document.getElementById('userEmail').textContent = user.email;
+  const {data:{user}}=await sb.auth.getUser();
+  if (!user){window.location.replace('./login.html');return;}
+  const {data:{session:s}}=await sb.auth.getSession();
+  session=s;
+  document.getElementById('userEmail').textContent=user.email;
   initApp();
 });
 
-window.addEventListener('pageshow', async function(e) {
-  if (e.persisted || performance.getEntriesByType('navigation')[0]?.type === 'back_forward') {
-    const { data: { session: s } } = await sb.auth.getSession();
-    if (!s) window.location.replace('./login.html');
+window.addEventListener('pageshow',async function(e){
+  if(e.persisted||performance.getEntriesByType('navigation')[0]?.type==='back_forward'){
+    const {data:{session:s}}=await sb.auth.getSession();
+    if(!s) window.location.replace('./login.html');
   }
 });
 
-async function signOut() {
+async function signOut(){
   await sb.auth.signOut();
   window.location.replace('./login.html');
 }
 
-function initApp() {
-  document.getElementById('addDate').value  = todayStr();
-  document.getElementById('cashDate').value = todayStr();
+function initApp(){
+  document.getElementById('addDate').value=todayStr();
+  document.getElementById('cashDate').value=todayStr();
   populateDateSelects();
-  (async () => {
+  (async()=>{
     await loadVehiclesFromDB();
     loadDashboard();
   })();
