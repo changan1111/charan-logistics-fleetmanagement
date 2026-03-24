@@ -221,6 +221,7 @@
   .btn-logout{padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
   .btn-logout:hover{border-color:var(--red);color:var(--red)}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -246,6 +247,7 @@
       <button class="tab-btn" data-tab="charts">📈 Charts</button>
       <button class="tab-btn" data-tab="cash">💵 Cash on Hand</button>
       <button class="tab-btn" data-tab="vehicles">🚛 Vehicles</button>
+      <button class="tab-btn" data-tab="report">🖨️ Report</button>
     </div>
   </div>
 </div>
@@ -481,6 +483,54 @@
     </div>
   </div>
 
+  <!-- ══ REPORT ══ -->
+  <div class="page" id="page-report">
+    <div style="max-width:560px;margin:0 auto">
+
+      <!-- Selector card -->
+      <div class="section-card" style="border-color:#f0a50033;margin-bottom:20px">
+        <div class="section-title">🖨️ Generate Monthly Vehicle Report</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <div class="field" style="flex:2;min-width:160px;margin-bottom:0">
+            <label class="label">Vehicle</label>
+            <select class="select" id="rptVehicle"><option value="">Select vehicle...</option></select>
+          </div>
+          <div class="field" style="flex:1;min-width:110px;margin-bottom:0">
+            <label class="label">Month</label>
+            <select class="select" id="rptMonth"></select>
+          </div>
+          <div class="field" style="flex:1;min-width:80px;margin-bottom:0">
+            <label class="label">Year</label>
+            <select class="select" id="rptYear"></select>
+          </div>
+        </div>
+        <button id="rptBtn" onclick="generateReport()"
+          style="width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .1s;letter-spacing:.3px"
+          onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''">
+          ⬇ Download Excel Report
+        </button>
+        <div class="toast" id="rptToast"></div>
+      </div>
+
+      <!-- Preview card (populated after generation) -->
+      <div id="rptPreview" style="display:none">
+        <div class="section-card" style="border-color:#22c55e33;padding:0;overflow:hidden">
+          <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;font-weight:700">Report Preview</div>
+              <div id="rptPreviewTitle" style="font-size:13px;font-weight:700;margin-top:2px"></div>
+            </div>
+            <div id="rptSummaryBadges" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="rptTable" style="width:100%;border-collapse:collapse;font-size:12px"></table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -496,7 +546,6 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 // ═══════════════════════════════════════════════
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
-
 
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let session = null;
@@ -702,7 +751,7 @@ async function loadVehicleList() {
 // ═══════════════════════════════════════════════
 function populateVehicleSelects() {
   // Add-entry & cash-form vehicle selects (no blank "all" option)
-  ['addVehicle','cashVehicle'].forEach(id=>{
+  ['addVehicle','cashVehicle','rptVehicle'].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const cur=el.value;
     el.innerHTML='<option value="">Select vehicle...</option>';
@@ -732,11 +781,13 @@ function populateDateSelects() {
   ['histMonth','dashMonth'].forEach(id=>{
     document.getElementById(id).innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
   });
-  ['histYear','dashYear','chartYear','cashYear'].forEach(id=>{
+  ['histYear','dashYear','chartYear','cashYear','rptYear'].forEach(id=>{
     document.getElementById(id).innerHTML=[2024,2025,2026].map(yr=>`<option value="${yr}"${yr===y?' selected':''}>${yr}</option>`).join('');
   });
   const cashMonEl=document.getElementById('cashMonth');
   if(cashMonEl) cashMonEl.innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
+  const rptMonEl=document.getElementById('rptMonth');
+  if(rptMonEl) rptMonEl.innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -1254,10 +1305,239 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     if(btn.dataset.tab==='charts')    loadCharts();
     if(btn.dataset.tab==='cash')      loadCash();
     if(btn.dataset.tab==='vehicles')  loadVehicleList();
+    if(btn.dataset.tab==='report')    initReportTab();
   });
 });
 
 function openConfig(){}
+
+// ═══════════════════════════════════════════════
+//  REPORT — Per Vehicle, One Row Per Day
+// ═══════════════════════════════════════════════
+function initReportTab() {
+  document.getElementById('rptPreview').style.display = 'none';
+}
+
+async function generateReport() {
+  const vehicle = document.getElementById('rptVehicle').value;
+  const month   = parseInt(document.getElementById('rptMonth').value);
+  const year    = parseInt(document.getElementById('rptYear').value);
+  if (!vehicle) { toast('rptToast','Please select a vehicle.',false); return; }
+
+  const btn = document.getElementById('rptBtn');
+  btn.textContent = '⏳ Loading data...'; btn.disabled = true;
+
+  try {
+    const [earnings, expenses, cashRows] = await Promise.all([
+      getRows('earnings', vehicle, month, year),
+      getRows('expenses', vehicle, month, year),
+      getCashRows(month, year, vehicle)
+    ]);
+
+    const monthLabel = MONTHS[month] + ' ' + year;
+
+    // ── Aggregate everything to ONE row per day ──────────────────────
+    // Collect all unique dates
+    const allDates = [...new Set([
+      ...earnings.map(e=>e.date),
+      ...expenses.map(e=>e.date),
+      ...cashRows.map(e=>e.date)
+    ])].sort();
+
+    // Build per-day aggregates
+    const dayMap = {};
+    allDates.forEach(d => {
+      dayMap[d] = { date:d, jit:0, kaira:0, other:0, totalRev:0, totalExp:0, totalCash:0,
+                    expNotes:[], cashNotes:[] };
+    });
+
+    earnings.forEach(e => {
+      const c = detectClient(e.note||'');
+      const a = Number(e.amount);
+      dayMap[e.date].totalRev += a;
+      if (c==='JIT')        dayMap[e.date].jit   += a;
+      else if (c==='KAIRA') dayMap[e.date].kaira += a;
+      else                  dayMap[e.date].other += a;
+    });
+
+    expenses.forEach(e => {
+      dayMap[e.date].totalExp += Number(e.amount);
+      if (e.expense_type) dayMap[e.date].expNotes.push(e.expense_type);
+    });
+
+    cashRows.forEach(c => {
+      dayMap[c.date].totalCash += Number(c.amount);
+      if (c.cash_type) dayMap[c.date].cashNotes.push(c.cash_type);
+    });
+
+    const rows = allDates.map(d => dayMap[d]);
+
+    // ── Grand totals ─────────────────────────────────────────────────
+    const totalRev   = rows.reduce((s,r)=>s+r.totalRev,0);
+    const totalJit   = rows.reduce((s,r)=>s+r.jit,0);
+    const totalKaira = rows.reduce((s,r)=>s+r.kaira,0);
+    const totalOther = rows.reduce((s,r)=>s+r.other,0);
+    const totalExp   = rows.reduce((s,r)=>s+r.totalExp,0);
+    const totalCash  = rows.reduce((s,r)=>s+r.totalCash,0);
+    const netProfit  = totalRev - totalExp;
+
+    buildPreviewTable(vehicle, monthLabel, rows,
+      totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit);
+
+    buildXlsx(vehicle, month, year, monthLabel, rows,
+      totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit);
+
+    toast('rptToast', `Report for ${vehicle} — ${monthLabel} downloaded!`, true);
+
+  } catch(e) {
+    toast('rptToast','Error: '+e.message, false);
+    console.error(e);
+  }
+  btn.textContent='⬇ Download Excel Report'; btn.disabled=false;
+}
+
+// ── helpers ───────────────────────────────────────────────────────────
+const fmtN  = v => v ? Number(v).toLocaleString('en-SG',{minimumFractionDigits:2}) : '-';
+const fmtD  = d => new Date(d+'T00:00:00').toLocaleDateString('en-SG',{day:'2-digit',month:'short'});
+const fmtDL = d => new Date(d+'T00:00:00').toLocaleDateString('en-SG',{day:'2-digit',month:'short',year:'numeric'});
+
+// ── Preview table (one row per day) ──────────────────────────────────
+function buildPreviewTable(vehicle, monthLabel, rows,
+    totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit) {
+
+  document.getElementById('rptPreviewTitle').textContent = `${vehicle} — ${monthLabel}`;
+  document.getElementById('rptSummaryBadges').innerHTML = `
+    <span style="background:var(--green-dim);color:var(--green);border:1px solid #22c55e44;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Revenue ${fmt(totalRev)}</span>
+    <span style="background:var(--red-dim);color:var(--red);border:1px solid #ef444433;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Expenses ${fmt(totalExp)}</span>
+    <span style="background:${netProfit>=0?'var(--green-dim)':'var(--red-dim)'};color:${netProfit>=0?'var(--green)':'var(--red)'};border:1px solid ${netProfit>=0?'#22c55e44':'#ef444433'};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Net ${fmt(netProfit)}</span>
+    <span style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d433;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Cash ${fmt(totalCash)}</span>`;
+
+  // Column definitions: [label, color, align]
+  const TH = [
+    ['DATE',        'var(--muted)',  'left'],
+    ['REVENUE',     'var(--green)',  'right'],
+    ['JIT',         'var(--jit)',    'right'],
+    ['KAIRA',       'var(--kaira)',  'right'],
+    ['OTHERS',      'var(--other)',  'right'],
+    ['EXPENSES',    'var(--red)',    'right'],
+    ['EXP DETAILS', 'var(--muted)', 'left'],
+    ['CASH OUT',    '#06b6d4',      'right'],
+    ['CASH DETAILS','var(--muted)', 'left'],
+  ];
+
+  const th = s => `padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:var(--surface);border-bottom:2px solid var(--border);white-space:nowrap;text-align:${s}`;
+  let html = `<thead><tr>${TH.map(([l,c,a])=>`<th style="${th(a)};color:${c}">${l}</th>`).join('')}</tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    const td  = (v,col,bold)=>`<td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:${col};text-align:right;${bold?'font-weight:700':''}white-space:nowrap">${v}</td>`;
+    const tdt = (v)=>`<td style="padding:7px 11px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v}</td>`;
+    html += `<tr>
+      <td style="padding:7px 11px;border-top:1px solid var(--border);color:var(--accent);font-weight:700;white-space:nowrap">${fmtD(r.date)}</td>
+      ${td(r.totalRev?fmtN(r.totalRev):'-','var(--green)',true)}
+      ${td(r.jit  ?fmtN(r.jit)  :'-','var(--jit)',false)}
+      ${td(r.kaira?fmtN(r.kaira):'-','var(--kaira)',false)}
+      ${td(r.other?fmtN(r.other):'-','var(--other)',false)}
+      ${td(r.totalExp?fmtN(r.totalExp):'-','var(--red)',true)}
+      ${tdt([...new Set(r.expNotes)].join(', '))}
+      ${td(r.totalCash?fmtN(r.totalCash):'-','#06b6d4',true)}
+      ${tdt([...new Set(r.cashNotes)].join(', '))}
+    </tr>`;
+  });
+
+  // Grand total row
+  html += `<tr style="background:var(--surface)">
+    <td style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--accent);font-weight:800;font-size:12px">TOTAL</td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--green);font-weight:800;text-align:right">${fmtN(totalRev)}</td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--jit);font-weight:700;text-align:right">${fmtN(totalJit)}</td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--kaira);font-weight:700;text-align:right">${fmtN(totalKaira)}</td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--other);font-weight:700;text-align:right">${fmtN(totalOther)}</td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--red);font-weight:800;text-align:right">${fmtN(totalExp)}</td>
+    <td style="padding:9px 11px;border-top:2px solid var(--accent);font-size:11px;color:var(--muted)">Net: <span class="mono" style="color:${netProfit>=0?'var(--green)':'var(--red)'};font-weight:800">${fmtN(netProfit)}</span></td>
+    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:#06b6d4;font-weight:800;text-align:right">${fmtN(totalCash)}</td>
+    <td style="padding:9px 11px;border-top:2px solid var(--accent)"></td>
+  </tr>`;
+
+  html += '</tbody>';
+  document.getElementById('rptTable').innerHTML = html;
+  document.getElementById('rptPreview').style.display = 'block';
+}
+
+// ── Excel (one row per day) ───────────────────────────────────────────
+function buildXlsx(vehicle, month, year, monthLabel, rows,
+                   totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit) {
+
+  if (typeof XLSX === 'undefined') {
+    alert('Excel library not loaded. Please check your internet connection and try again.');
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+  const wsData = [];
+
+  // ── Title block ──────────────────────────────────────────────────
+  wsData.push([`MONTHLY VEHICLE REPORT — ${vehicle}`,'','','','','','','','']);
+  wsData.push([`Period: ${monthLabel}   |   Generated: ${new Date().toLocaleDateString('en-SG')}`,'','','','','','','','']);
+  wsData.push([]); // spacer
+
+  // ── Summary block ────────────────────────────────────────────────
+  wsData.push(['SUMMARY','','','','','','','','']);
+  wsData.push(['Total Revenue ($)', totalRev, '', 'Total Expenses ($)', totalExp, '', 'Net Profit ($)', netProfit, '']);
+  wsData.push(['JIT ($)', totalJit, '', 'KAIRA ($)', totalKaira, '', 'Others ($)', totalOther, '']);
+  wsData.push(['Cash Paid Out ($)', totalCash, '', '', '', '', '', '', '']);
+  wsData.push([]); // spacer
+
+  // ── Column headers ───────────────────────────────────────────────
+  wsData.push(['DATE', 'REVENUE ($)', 'JIT ($)', 'KAIRA ($)', 'OTHERS ($)',
+               'EXPENSES ($)', 'EXPENSE DETAILS', 'CASH OUT ($)', 'CASH DETAILS']);
+
+  // ── One row per day ──────────────────────────────────────────────
+  rows.forEach(r => {
+    wsData.push([
+      fmtDL(r.date),
+      r.totalRev  || '',
+      r.jit       || '',
+      r.kaira     || '',
+      r.other     || '',
+      r.totalExp  || '',
+      [...new Set(r.expNotes)].join(', '),
+      r.totalCash || '',
+      [...new Set(r.cashNotes)].join(', ')
+    ]);
+  });
+
+  // ── Totals row ───────────────────────────────────────────────────
+  wsData.push([]);
+  wsData.push(['TOTAL', totalRev, totalJit, totalKaira, totalOther,
+               totalExp, `Net Profit: ${totalRev - totalExp >= 0 ? '' : '-'}${Math.abs(totalRev-totalExp).toFixed(2)}`,
+               totalCash, '']);
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:16}, // Date
+    {wch:14}, // Revenue
+    {wch:12}, // JIT
+    {wch:12}, // KAIRA
+    {wch:12}, // Others
+    {wch:14}, // Expenses
+    {wch:28}, // Exp details
+    {wch:13}, // Cash
+    {wch:24}, // Cash details
+  ];
+
+  // Merge title rows across all 9 columns
+  ws['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:8}},
+    {s:{r:1,c:0},e:{r:1,c:8}},
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
+
+  const fileName = `Report_${vehicle}_${MONTHS[month]}_${year}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
+
 
 // ══════════════════════════════════════════════
 //  AUTH GUARD
