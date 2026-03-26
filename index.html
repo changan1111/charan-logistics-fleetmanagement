@@ -15,7 +15,7 @@
     --green:#22c55e; --green-dim:#22c55e18;
     --red:#ef4444;   --red-dim:#ef444418;
     --muted:#52526a; --text:#e4e4f0;
-    --kaira:#f59e0b; --jit:#06b6d4; --other:#a78bfa;
+    --kaira:#f59e0b; --jit:#06b6d4; --lm:#10b981; --other:#a78bfa;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -33,9 +33,6 @@
   .header-brand h1{font-size:20px;font-weight:800;letter-spacing:-0.5px}
   .client-pills{display:flex;gap:6px;flex-wrap:wrap}
   .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.5px}
-  .pill-kaira{background:#f59e0b22;color:var(--kaira);border:1px solid #f59e0b44}
-  .pill-jit{background:#06b6d422;color:var(--jit);border:1px solid #06b6d444}
-  .pill-other{background:#a78bfa22;color:var(--other);border:1px solid #a78bfa44}
   .tabs{display:flex;gap:0;margin-top:14px;overflow-x:auto}
   .tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;padding:10px 14px;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
   .tab-btn:hover{color:var(--text)}
@@ -149,7 +146,6 @@
   .cash-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   @media(max-width:700px){
     .cash-layout{grid-template-columns:1fr}
-    /* On mobile the form comes first (natural order), ledger second */
     .cash-ledger-col{order:2}
     .cash-form-col{order:1}
   }
@@ -161,11 +157,9 @@
   .cash-ledger-header{padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border)}
   .cash-ledger-title{font-size:10px;color:#06b6d4;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
 
-  /* Filter row — vehicle + month + year all on one line, wraps on mobile */
   .cash-filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cash-filter-row select{flex:1;min-width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-family:'Syne',sans-serif;font-size:12px;outline:none;cursor:pointer}
   .cash-filter-row select:focus{border-color:#06b6d4}
-  /* Vehicle select slightly wider */
   .cash-filter-row #cashLedgerVehicle{flex:2;min-width:130px}
 
   .cash-summary-strip{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto}
@@ -174,7 +168,6 @@
   .cash-summary-cell .csc-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:600}
   .cash-summary-cell .csc-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700}
 
-  /* Mobile: summary strip stacks as 2x2 */
   @media(max-width:480px){
     .cash-summary-strip{flex-wrap:wrap}
     .cash-summary-cell{flex:1 1 48%;border-right:none;border-bottom:1px solid var(--border)}
@@ -193,7 +186,6 @@
   .cash-amt{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;white-space:nowrap;color:#06b6d4}
   .cash-running{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;text-align:right}
 
-  /* Amount col never squishes */
   .cash-amt-col{text-align:right;flex-shrink:0;min-width:80px}
 
   .btn-cash-save{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;background:#06b6d4;color:#000;transition:opacity .2s,transform .1s;margin-top:6px}
@@ -234,11 +226,8 @@
         <h1>Vehicle P&amp;L Tracker</h1>
       </div>
       <div class="user-badge"><span class="user-email" id="userEmail"></span><button class="btn-logout" onclick="signOut()">Sign Out</button></div>
-      <div class="client-pills">
-        <span class="pill pill-kaira">● KAIRA</span>
-        <span class="pill pill-jit">● JIT</span>
-        <span class="pill pill-other">● OTHERS</span>
-      </div>
+      <!-- Client pills are injected dynamically by buildClientPills() -->
+      <div class="client-pills" id="clientPillsContainer"></div>
     </div>
     <div class="tabs">
       <button class="tab-btn active" data-tab="add">➕ Add Entry</button>
@@ -284,8 +273,9 @@
         </select>
       </div>
       <div class="field">
-        <label class="label" id="noteLabel">Notes (mention KAIRA / JIT if applicable)</label>
-        <textarea class="textarea" id="addNote" rows="3" placeholder="e.g. KAIRA delivery Mumbai..."></textarea>
+        <!-- Note label is updated dynamically to list all client keywords -->
+        <label class="label" id="noteLabel">Notes</label>
+        <textarea class="textarea" id="addNote" rows="3" placeholder="e.g. KAIRA delivery, JIT run..."></textarea>
         <div id="clientDetect" style="margin-top:6px;display:none;align-items:center;gap:6px;font-size:11px;color:var(--muted)">
           Auto-detected: <span id="detectedBadge"></span>
         </div>
@@ -344,8 +334,6 @@
   <!-- ══ CASH ON HAND ══ -->
   <div class="page" id="page-cash">
     <div class="cash-layout">
-
-      <!-- Left: Add form -->
       <div class="cash-form-col">
         <div class="cash-form-card">
           <div class="cash-form-title">💵 Record Cash Payment</div>
@@ -378,8 +366,6 @@
           </div>
           <button class="btn-cash-save" id="cashSaveBtn" onclick="saveCash()">Record Cash Payment</button>
           <div class="toast" id="cashToast"></div>
-
-          <!-- Salary adjustment hint box -->
           <div style="margin-top:16px;background:var(--bg);border:1px solid #06b6d422;border-radius:10px;padding:14px">
             <div style="font-size:10px;color:#06b6d4;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:8px">How Salary Adjustment Works</div>
             <div style="font-size:11px;color:var(--muted);line-height:1.8">
@@ -391,12 +377,8 @@
           </div>
         </div>
       </div>
-
-      <!-- Right: Ledger -->
       <div class="cash-ledger-col">
         <div class="cash-ledger">
-
-          <!-- Header with ALL filters: vehicle + month + year -->
           <div class="cash-ledger-header">
             <div class="cash-ledger-title">Cash Ledger</div>
             <div class="cash-filter-row">
@@ -407,8 +389,6 @@
               <select id="cashYear"  onchange="loadCash()"></select>
             </div>
           </div>
-
-          <!-- Summary strip -->
           <div class="cash-summary-strip" id="cashSummaryStrip">
             <div class="cash-summary-cell">
               <div class="csc-label">Total Paid Out</div>
@@ -427,8 +407,6 @@
               <div class="csc-val" style="color:var(--green)">S$ 0.00</div>
             </div>
           </div>
-
-          <!-- Salary box -->
           <div style="padding:12px 18px;border-bottom:1px solid var(--border)" id="cashSalaryBox">
             <div class="salary-box">
               <div>
@@ -441,19 +419,15 @@
               </div>
             </div>
           </div>
-
-          <!-- Entries -->
           <div id="cashEntries"><div class="cash-empty">No cash entries this month.</div></div>
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- ══ VEHICLES ══ -->
   <div class="page" id="page-vehicles">
     <div style="max-width:600px;margin:0 auto">
-      <!-- Add vehicle form -->
       <div class="section-card" style="border-color:#f0a50033;margin-bottom:20px">
         <div class="section-title">➕ Add New Vehicle</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
@@ -474,7 +448,6 @@
         </div>
         <div class="toast" id="vehToast" style="margin-top:10px"></div>
       </div>
-      <!-- Vehicle list -->
       <div class="section-card" style="padding:0;overflow:hidden">
         <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
           <div class="section-title" style="margin-bottom:0">Fleet Vehicles</div>
@@ -488,8 +461,6 @@
   <!-- ══ REPORT ══ -->
   <div class="page" id="page-report">
     <div style="max-width:560px;margin:0 auto">
-
-      <!-- Selector card -->
       <div class="section-card" style="border-color:#f0a50033;margin-bottom:20px">
         <div class="section-title">🖨️ Generate Monthly Vehicle Report</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
@@ -513,8 +484,6 @@
         </button>
         <div class="toast" id="rptToast"></div>
       </div>
-
-      <!-- Preview card (populated after generation) -->
       <div id="rptPreview" style="display:none">
         <div class="section-card" style="border-color:#22c55e33;padding:0;overflow:hidden">
           <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -529,13 +498,87 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════
+//
+//  ██████╗██╗     ██╗███████╗███╗   ██╗████████╗    ██████╗ ██████╗
+// ██╔════╝██║     ██║██╔════╝████╗  ██║╚══██╔══╝   ██╔════╝██╔═══██╗
+// ██║     ██║     ██║█████╗  ██╔██╗ ██║   ██║      ██║     ██║   ██║
+// ██║     ██║     ██║██╔══╝  ██║╚██╗██║   ██║      ██║     ██║   ██║
+// ╚██████╗███████╗██║███████╗██║ ╚████║   ██║      ╚██████╗╚██████╔╝
+//  ╚═════╝╚══════╝╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝       ╚═════╝ ╚═════╝
+//
+//  ⚙️  CLIENT CONFIGURATION — Edit ONLY this section to add/remove clients
+//
+//  Each entry:
+//    key      – used internally as the identifier (uppercase, no spaces)
+//    label    – display name shown in UI
+//    keyword  – substring matched (case-insensitive) in the notes field
+//               *** The LAST entry is always treated as the catch-all "Other" ***
+//    color    – CSS color for charts / badges
+//    hex      – same color in hex for border/bg tints (match color above)
+//
+//  To add a new client → just push a new object BEFORE the last "OTHER" entry.
+//  To remove a client  → delete its object from the array.
+//  The rest of the app adapts automatically.
+//
+// ═══════════════════════════════════════════════════════════════════════
+const CLIENT_CONFIG = [
+  { key: 'KAIRA',       label: 'KAIRA',       keyword: 'KAIRA',       color: '#f59e0b', hex: '#f59e0b' },
+  { key: 'JIT',         label: 'JIT',         keyword: 'JIT',         color: '#06b6d4', hex: '#06b6d4' },
+  { key: 'LIVING_MENU', label: 'Living Menu',  keyword: 'LIVING MENU', color: '#10b981', hex: '#10b981' },
+  // ↑ Add more named clients here ↑
+  { key: 'OTHER',       label: 'Others',      keyword: null,          color: '#a78bfa', hex: '#a78bfa' },
+  // ↑ Keep OTHER last — it is the automatic catch-all ↑
+];
+// ═══════════════════════════════════════════════════════════════════════
+//  END CLIENT CONFIG
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Derived helpers (auto-built from CLIENT_CONFIG, do not edit) ────────
+const NAMED_CLIENTS = CLIENT_CONFIG.filter(c => c.keyword !== null);  // all except OTHER
+const OTHER_CLIENT  = CLIENT_CONFIG.find(c => c.key === 'OTHER');
+
+/** Detect which client a note belongs to. Returns the CLIENT_CONFIG entry. */
+function detectClientEntry(note = '') {
+  const u = note.toUpperCase();
+  for (const c of NAMED_CLIENTS) {
+    if (u.includes(c.keyword.toUpperCase())) return c;
+  }
+  return OTHER_CLIENT;
+}
+
+/** Returns the client KEY string (e.g. 'KAIRA') */
+function detectClient(note = '') {
+  return detectClientEntry(note).key;
+}
+
+/** HTML badge for a client key */
+function clientBadge(key) {
+  const c = CLIENT_CONFIG.find(x => x.key === key) || OTHER_CLIENT;
+  return `<span class="client-tag" style="color:${c.color};background:${c.hex}22;border:1px solid ${c.hex}55">${c.label}</span>`;
+}
+
+/** Build the header pills dynamically */
+function buildClientPills() {
+  const el = document.getElementById('clientPillsContainer');
+  el.innerHTML = CLIENT_CONFIG.map(c =>
+    `<span class="pill" style="background:${c.hex}22;color:${c.color};border:1px solid ${c.hex}44">● ${c.label.toUpperCase()}</span>`
+  ).join('');
+}
+
+/** Update the Add-Entry note label hint */
+function updateNoteLabel() {
+  const keywords = NAMED_CLIENTS.map(c => c.keyword).join(' / ');
+  document.getElementById('noteLabel').textContent = `Notes (mention ${keywords} if applicable)`;
+  document.getElementById('addNote').placeholder = `e.g. ${NAMED_CLIENTS[0]?.keyword} delivery...`;
+}
+
 // ═══════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════
@@ -548,6 +591,8 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 // ═══════════════════════════════════════════════
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
+
+
 
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let session = null;
@@ -612,8 +657,6 @@ async function getYear(table, year) {
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(String(year)));
   return sbGet(`/rest/v1/${table}?date=gte.${year}-01-01&date=lte.${year}-12-31&order=date.asc`);
 }
-
-// ── getCashRows now accepts optional vehicle filter ──
 async function getCashRows(month, year, vehicle='') {
   const ym=`${year}-${pad(month+1)}`;
   if (DEMO_MODE) {
@@ -639,23 +682,27 @@ const pad   = n => String(n).padStart(2,'0');
 const fmt   = n => 'S$ '+Number(n||0).toLocaleString('en-SG',{minimumFractionDigits:2});
 const fmtK  = n => n>=100000?'S$ '+(n/100000).toFixed(1)+'L':n>=1000?'S$ '+(n/1000).toFixed(1)+'K':'S$ '+n;
 const todayStr = () => new Date().toISOString().slice(0,10);
-function detectClient(note='') {
-  const u=note.toUpperCase();
-  if(u.includes('KAIRA')) return 'KAIRA';
-  if(u.includes('JIT'))   return 'JIT';
-  return 'OTHER';
-}
-function clientBadge(c) {
-  const m={KAIRA:['var(--kaira)','#f59e0b33'],JIT:['var(--jit)','#06b6d433'],OTHER:['var(--other)','#a78bfa33']};
-  const [col,bg]=m[c]||m.OTHER;
-  return `<span class="client-tag" style="color:${col};background:${bg};border:1px solid ${col}55">${c}</span>`;
-}
+
 function toast(id,msg,ok) {
   const el=document.getElementById(id);
   el.textContent=(ok?'✓ ':'✗ ')+msg; el.className='toast '+(ok?'ok':'err'); el.style.display='block';
   setTimeout(()=>el.style.display='none',3500);
 }
 function killChart(id){ if(CI[id]){CI[id].destroy();delete CI[id];} }
+
+/**
+ * Aggregate an array of earning rows into per-client totals.
+ * Returns an object keyed by CLIENT_CONFIG key, e.g. { KAIRA: 1200, JIT: 800, LIVING_MENU: 300, OTHER: 50 }
+ */
+function sumByClient(earningRows) {
+  const result = {};
+  CLIENT_CONFIG.forEach(c => result[c.key] = 0);
+  earningRows.forEach(e => {
+    const key = detectClient(e.note || '');
+    result[key] = (result[key] || 0) + Number(e.amount);
+  });
+  return result;
+}
 
 const CD={
   responsive:true,maintainAspectRatio:true,
@@ -752,7 +799,6 @@ async function loadVehicleList() {
 //  INIT SELECTS
 // ═══════════════════════════════════════════════
 function populateVehicleSelects() {
-  // Add-entry & cash-form vehicle selects (no blank "all" option)
   ['addVehicle','cashVehicle','rptVehicle'].forEach(id=>{
     const el=document.getElementById(id); if(!el) return;
     const cur=el.value;
@@ -760,7 +806,6 @@ function populateVehicleSelects() {
     VEHICLES.forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
     if(cur) el.value=cur;
   });
-  // History vehicle select
   const hv=document.getElementById('histVehicle');
   if(hv){
     const cur=hv.value;
@@ -768,7 +813,6 @@ function populateVehicleSelects() {
     VEHICLES.forEach(v=>hv.innerHTML+=`<option value="${v}">${v}</option>`);
     if(cur) hv.value=cur;
   }
-  // Cash LEDGER vehicle filter (has "All Vehicles" option)
   const clv=document.getElementById('cashLedgerVehicle');
   if(clv){
     const cur=clv.value;
@@ -803,8 +847,7 @@ function setType(t) {
     ea.className='type-btn earn-active';ex.className='type-btn';
     amt.style.color='var(--green)';btn.className='btn-save earn';btn.textContent='Save Earning';
     document.getElementById('expTypeField').style.display='none';
-    document.getElementById('noteLabel').textContent='Notes (mention KAIRA / JIT if applicable)';
-    document.getElementById('addNote').placeholder='e.g. KAIRA delivery Mumbai...';
+    updateNoteLabel();
   } else {
     ex.className='type-btn exp-active';ea.className='type-btn';
     amt.style.color='var(--red)';btn.className='btn-save exp';btn.textContent='Save Expense';
@@ -817,8 +860,12 @@ function setType(t) {
 document.getElementById('addNote').addEventListener('input',function(){
   if(ENTRY_TYPE!=='earning') return;
   const det=document.getElementById('clientDetect');
-  if(this.value.trim()){det.style.display='flex';document.getElementById('detectedBadge').innerHTML=clientBadge(detectClient(this.value));}
-  else det.style.display='none';
+  if(this.value.trim()){
+    det.style.display='flex';
+    document.getElementById('detectedBadge').innerHTML=clientBadge(detectClient(this.value));
+  } else {
+    det.style.display='none';
+  }
 });
 async function saveEntry() {
   const vehicle=document.getElementById('addVehicle').value;
@@ -853,16 +900,18 @@ async function loadHistory() {
     const totalE=earnings.reduce((s,e)=>s+Number(e.amount),0);
     const totalX=expenses.reduce((s,e)=>s+Number(e.amount),0);
     const net=totalE-totalX;
-    const kE=earnings.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0);
-    const jE=earnings.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0);
-    const oE=earnings.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0);
+
+    // ── Dynamic client totals ──
+    const clientTotals = sumByClient(earnings);
     const expByType={};
     expenses.forEach(e=>expByType[e.expense_type]=(expByType[e.expense_type]||0)+Number(e.amount));
+
     const byDay={};
     earnings.forEach(e=>{if(!byDay[e.date])byDay[e.date]={earn:[],exp:[]};byDay[e.date].earn.push(e);});
     expenses.forEach(e=>{if(!byDay[e.date])byDay[e.date]={earn:[],exp:[]};byDay[e.date].exp.push(e);});
     const days=Object.keys(byDay).sort().reverse();
     const pct=v=>totalE>0?((v/totalE)*100).toFixed(1):'0.0';
+
     let html=`
     <div class="stat-row">
       <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">Total Earnings</div><div class="sval" style="color:var(--green)">${fmt(totalE)}</div></div>
@@ -870,13 +919,14 @@ async function loadHistory() {
       <div class="stat-card" style="border-color:${net>=0?'#22c55e33':'#ef444433'}"><div class="slabel">Net Profit</div><div class="sval" style="color:${net>=0?'var(--green)':'var(--red)'}">${fmt(net)}</div></div>
     </div>
     <div class="section-card"><div class="section-title">Earnings by Client</div><div class="client-grid">
-      ${[['KAIRA',kE,'var(--kaira)','#f59e0b'],['JIT',jE,'var(--jit)','#06b6d4'],['Others',oE,'var(--other)','#a78bfa']].map(([l,v,col,hex])=>`
-      <div class="client-box" style="border-color:${hex}33">
-        <div class="clabel" style="color:${col}">${l}<span class="cpct">${pct(v)}%</span></div>
-        <div class="cval" style="color:${col}">${fmt(v)}</div>
-        <div class="cbar-bg"><div class="cbar" style="width:${pct(v)}%;background:${col}"></div></div>
+      ${CLIENT_CONFIG.map(c=>`
+      <div class="client-box" style="border-color:${c.hex}33">
+        <div class="clabel" style="color:${c.color}">${c.label}<span class="cpct">${pct(clientTotals[c.key]||0)}%</span></div>
+        <div class="cval" style="color:${c.color}">${fmt(clientTotals[c.key]||0)}</div>
+        <div class="cbar-bg"><div class="cbar" style="width:${pct(clientTotals[c.key]||0)}%;background:${c.color}"></div></div>
       </div>`).join('')}
     </div></div>`;
+
     if(Object.keys(expByType).length>0){
       html+=`<div class="section-card"><div class="section-title">Expense by Category</div>
         ${Object.entries(expByType).sort((a,b)=>b[1]-a[1]).map(([t,a])=>`
@@ -885,6 +935,7 @@ async function loadHistory() {
         <div class="exp-amt">${fmt(a)}</div></div>`).join('')}
       </div>`;
     }
+
     if(!days.length) html+='<div class="no-data">No entries found.</div>';
     else days.forEach(day=>{
       const {earn,exp}=byDay[day];
@@ -927,59 +978,73 @@ async function loadDashboard() {
     const [allE,allX]=await Promise.all([getAllRows('earnings',month,year),getAllRows('expenses',month,year)]);
     const grandE=allE.reduce((s,e)=>s+Number(e.amount),0);
     const grandX=allX.reduce((s,e)=>s+Number(e.amount),0);
-    const grandK=allE.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0);
-    const grandJ=allE.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0);
-    const grandO=allE.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0);
     const grandNet=grandE-grandX;
+
+    // ── Dynamic fleet-level client totals ──
+    const grandClientTotals = sumByClient(allE);
+
     const TARGET=6500;
     const rows=VEHICLES.map(v=>{
       const ve=allE.filter(e=>e.vehicle===v),vx=allX.filter(e=>e.vehicle===v);
       const te=ve.reduce((s,e)=>s+Number(e.amount),0),tx=vx.reduce((s,e)=>s+Number(e.amount),0);
+      const vClientTotals = sumByClient(ve);
       let extraAchieved=0,incentive=0,underAchieved=0,deduction=0,perfStatus='';
       if(te>=TARGET){extraAchieved=te-TARGET;incentive=extraAchieved*0.5;perfStatus='over';}
       else{underAchieved=TARGET-te;deduction=(underAchieved*3000)/TARGET;perfStatus='under';}
-      return{v,te,tx,net:te-tx,
-        kk:ve.filter(e=>detectClient(e.note)==='KAIRA').reduce((s,e)=>s+Number(e.amount),0),
-        jj:ve.filter(e=>detectClient(e.note)==='JIT').reduce((s,e)=>s+Number(e.amount),0),
-        oo:ve.filter(e=>detectClient(e.note)==='OTHER').reduce((s,e)=>s+Number(e.amount),0),
-        extraAchieved,incentive,underAchieved,deduction,perfStatus};
+      return{v,te,tx,net:te-tx,clientTotals:vClientTotals,extraAchieved,incentive,underAchieved,deduction,perfStatus};
     });
+
     const totalIncentive=rows.reduce((s,r)=>s+r.incentive,0);
     const totalDeduction=rows.reduce((s,r)=>s+r.deduction,0);
     const pct=v=>grandE>0?((v/grandE)*100).toFixed(1):'0.0';
+
+    // ── Vehicle-wise table: dynamic client columns ──
+    const clientCols = CLIENT_CONFIG.map(c =>
+      `<th style="color:${c.color}">${c.label.toUpperCase()}</th>`
+    ).join('');
+
+    const vehicleRows = rows.map(r => {
+      const clientCells = CLIENT_CONFIG.map(c =>
+        `<td class="mono" style="color:${c.color}">${fmt(r.clientTotals[c.key]||0)}</td>`
+      ).join('');
+      return `<tr>
+        <td class="mono" style="color:var(--accent);font-weight:700">${r.v}</td>
+        <td class="mono" style="color:var(--green)">${fmt(r.te)}</td>
+        ${clientCells}
+        <td class="mono" style="color:var(--red)">${fmt(r.tx)}</td>
+        <td class="mono" style="color:${r.net>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(r.net)}</td>
+      </tr>`;
+    }).join('');
+
+    const totalClientCells = CLIENT_CONFIG.map(c =>
+      `<td class="mono" style="color:${c.color};font-weight:700">${fmt(grandClientTotals[c.key]||0)}</td>`
+    ).join('');
+
     el.innerHTML=`
     <div class="stat-row">
       <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">Fleet Earnings</div><div class="sval" style="color:var(--green)">${fmt(grandE)}</div></div>
       <div class="stat-card" style="border-color:#ef444433"><div class="slabel">Fleet Expenses</div><div class="sval" style="color:var(--red)">${fmt(grandX)}</div></div>
       <div class="stat-card" style="border-color:${grandNet>=0?'#22c55e33':'#ef444433'}"><div class="slabel">Net Profit</div><div class="sval" style="color:${grandNet>=0?'var(--green)':'var(--red)'}">${fmt(grandNet)}</div></div>
     </div>
+
     <div class="section-card"><div class="section-title">Fleet Client Earnings — ${MONTHS[month]} ${year}</div><div class="client-grid">
-      ${[['KAIRA',grandK,'var(--kaira)','#f59e0b'],['JIT',grandJ,'var(--jit)','#06b6d4'],['Others',grandO,'var(--other)','#a78bfa']].map(([l,v,col,hex])=>`
-      <div class="client-box" style="border-color:${hex}33">
-        <div class="clabel" style="color:${col}">${l}<span class="cpct">${pct(v)}%</span></div>
-        <div class="cval" style="color:${col}">${fmt(v)}</div>
-        <div class="cbar-bg"><div class="cbar" style="width:${pct(v)}%;background:${col}"></div></div>
+      ${CLIENT_CONFIG.map(c=>`
+      <div class="client-box" style="border-color:${c.hex}33">
+        <div class="clabel" style="color:${c.color}">${c.label}<span class="cpct">${pct(grandClientTotals[c.key]||0)}%</span></div>
+        <div class="cval" style="color:${c.color}">${fmt(grandClientTotals[c.key]||0)}</div>
+        <div class="cbar-bg"><div class="cbar" style="width:${pct(grandClientTotals[c.key]||0)}%;background:${c.color}"></div></div>
       </div>`).join('')}
     </div></div>
+
     <div class="section-card"><div class="section-title">Vehicle-wise Summary — ${MONTHS[month]} ${year}</div>
     <div class="dtable-wrap"><table>
-      <thead><tr><th>Vehicle</th><th style="color:var(--green)">Earnings</th><th style="color:var(--kaira)">KAIRA</th><th style="color:var(--jit)">JIT</th><th style="color:var(--other)">Others</th><th style="color:var(--red)">Expenses</th><th>Net</th></tr></thead>
+      <thead><tr><th>Vehicle</th><th style="color:var(--green)">Earnings</th>${clientCols}<th style="color:var(--red)">Expenses</th><th>Net</th></tr></thead>
       <tbody>
-        ${rows.map(r=>`<tr>
-          <td class="mono" style="color:var(--accent);font-weight:700">${r.v}</td>
-          <td class="mono" style="color:var(--green)">${fmt(r.te)}</td>
-          <td class="mono" style="color:var(--kaira)">${fmt(r.kk)}</td>
-          <td class="mono" style="color:var(--jit)">${fmt(r.jj)}</td>
-          <td class="mono" style="color:var(--other)">${fmt(r.oo)}</td>
-          <td class="mono" style="color:var(--red)">${fmt(r.tx)}</td>
-          <td class="mono" style="color:${r.net>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(r.net)}</td>
-        </tr>`).join('')}
+        ${vehicleRows}
         <tr style="border-top:2px solid var(--border)">
           <td style="font-weight:700;color:var(--muted)">TOTAL</td>
           <td class="mono" style="color:var(--green);font-weight:700">${fmt(grandE)}</td>
-          <td class="mono" style="color:var(--kaira);font-weight:700">${fmt(grandK)}</td>
-          <td class="mono" style="color:var(--jit);font-weight:700">${fmt(grandJ)}</td>
-          <td class="mono" style="color:var(--other);font-weight:700">${fmt(grandO)}</td>
+          ${totalClientCells}
           <td class="mono" style="color:var(--red);font-weight:700">${fmt(grandX)}</td>
           <td class="mono" style="color:${grandNet>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(grandNet)}</td>
         </tr>
@@ -1051,16 +1116,23 @@ async function loadCharts() {
   strip.innerHTML='';
   try {
     const [yearE,yearX]=await Promise.all([getYear('earnings',year),getYear('expenses',year)]);
+
+    // Build per-vehicle per-month data with dynamic clients
     const md={};
-    VEHICLES.forEach(v=>{md[v]=Array.from({length:12},()=>({earn:0,exp:0,net:0,kaira:0,jit:0,other:0}));});
+    VEHICLES.forEach(v=>{
+      md[v]=Array.from({length:12},()=>{
+        const d={earn:0,exp:0,net:0};
+        CLIENT_CONFIG.forEach(c=>d[c.key]=0);
+        return d;
+      });
+    });
+
     yearE.forEach(e=>{
       const m=parseInt(e.date.split('-')[1])-1;
       if(!md[e.vehicle]) return;
-      const c=detectClient(e.note); const a=Number(e.amount);
+      const cKey=detectClient(e.note); const a=Number(e.amount);
       md[e.vehicle][m].earn+=a;
-      if(c==='KAIRA') md[e.vehicle][m].kaira+=a;
-      else if(c==='JIT') md[e.vehicle][m].jit+=a;
-      else md[e.vehicle][m].other+=a;
+      md[e.vehicle][m][cKey]=(md[e.vehicle][m][cKey]||0)+a;
     });
     yearX.forEach(e=>{
       const m=parseInt(e.date.split('-')[1])-1;
@@ -1068,6 +1140,7 @@ async function loadCharts() {
       md[e.vehicle][m].exp+=Number(e.amount);
     });
     VEHICLES.forEach(v=>{for(let m=0;m<12;m++) md[v][m].net=md[v][m].earn-md[v][m].exp;});
+
     if(view==='individual'){
       if(!activeVehicle||!VEHICLES.includes(activeVehicle)) activeVehicle=VEHICLES[0];
       strip.innerHTML=VEHICLES.map(v=>`<button class="v-tab${v===activeVehicle?' active':''}" onclick="switchV('${v}',${year})">${v}</button>`).join('');
@@ -1095,6 +1168,7 @@ function renderIndividual(vehicle,year,data) {
   const ytdX=data.reduce((s,d)=>s+d.exp,0);
   const ytdN=data.reduce((s,d)=>s+d.net,0);
   const bestM=data.reduce((b,d,i)=>d.earn>data[b].earn?i:b,0);
+
   el.innerHTML=`
   <div class="stat-row">
     <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">YTD Earnings</div><div class="sval" style="color:var(--green)">${fmtK(ytdE)}</div><div class="ssub">${badge(pctChg(pe,ce),'vs prev month')}</div></div>
@@ -1104,19 +1178,49 @@ function renderIndividual(vehicle,year,data) {
   </div>
   <div class="chart-wrap"><div class="chart-title">Earnings vs Expenses — ${vehicle} · ${year}</div><div class="chart-sub">Monthly comparison of income and spending</div><canvas id="ch-ee"></canvas></div>
   <div class="chart-wrap"><div class="chart-title">Net Profit Trend — ${vehicle} · ${year}</div><div class="chart-sub">Green dots = profitable months · Red dots = loss months</div><canvas id="ch-net"></canvas></div>
-  <div class="chart-wrap"><div class="chart-title">Client Earnings Breakdown — ${vehicle} · ${year}</div><div class="chart-sub">KAIRA · JIT · Others stacked per month</div><canvas id="ch-cli"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Client Earnings Breakdown — ${vehicle} · ${year}</div><div class="chart-sub">${CLIENT_CONFIG.map(c=>c.label).join(' · ')} stacked per month</div><canvas id="ch-cli"></canvas></div>
   <div class="chart-wrap"><div class="chart-title">Expense Ratio % — ${vehicle} · ${year}</div><div class="chart-sub">% of earnings spent. Green &lt;40% · Amber 40–70% · Red &gt;70%</div><canvas id="ch-ratio"></canvas></div>`;
+
   CI['ch-ee']=new Chart(document.getElementById('ch-ee'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'Earnings',data:data.map(d=>d.earn),backgroundColor:'#22c55e55',borderColor:'#22c55e',borderWidth:1.5,borderRadius:4},{label:'Expenses',data:data.map(d=>d.exp),backgroundColor:'#ef444455',borderColor:'#ef4444',borderWidth:1.5,borderRadius:4}]},options:{...CD}});
   CI['ch-net']=new Chart(document.getElementById('ch-net'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'Net Profit',data:data.map(d=>d.net),borderColor:'#f0a500',backgroundColor:'#f0a50020',pointBackgroundColor:data.map(d=>d.net>=0?'#22c55e':'#ef4444'),pointBorderColor:'#09090d',pointRadius:5,pointHoverRadius:7,tension:.35,fill:true,borderWidth:2}]},options:{...CD}});
-  CI['ch-cli']=new Chart(document.getElementById('ch-cli'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:data.map(d=>d.kaira),backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:2},{label:'JIT',data:data.map(d=>d.jit),backgroundColor:'#06b6d499',borderColor:'#06b6d4',borderWidth:1,borderRadius:2},{label:'Others',data:data.map(d=>d.other),backgroundColor:'#a78bfa99',borderColor:'#a78bfa',borderWidth:1,borderRadius:2}]},options:{...CD,scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}});
+
+  // ── Dynamic client stacked bar ──
+  CI['ch-cli']=new Chart(document.getElementById('ch-cli'),{
+    type:'bar',
+    data:{
+      labels:MONTHS_S,
+      datasets:CLIENT_CONFIG.map(c=>({
+        label:c.label,
+        data:data.map(d=>d[c.key]||0),
+        backgroundColor:c.hex+'99',
+        borderColor:c.hex,
+        borderWidth:1,
+        borderRadius:2
+      }))
+    },
+    options:{...CD,scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true}}}
+  });
+
   const ratio=data.map(d=>d.earn>0?+((d.exp/d.earn)*100).toFixed(1):0);
   CI['ch-ratio']=new Chart(document.getElementById('ch-ratio'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'Expense %',data:ratio,borderColor:'#a78bfa',backgroundColor:'#a78bfa20',pointBackgroundColor:ratio.map(v=>v>70?'#ef4444':v>40?'#f59e0b':'#22c55e'),pointBorderColor:'#09090d',pointRadius:5,pointHoverRadius:7,tension:.35,fill:true,borderWidth:2}]},options:{...CD,scales:{x:CD.scales.x,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v+'%'},max:110}}}});
 }
 
 function renderCompare(year,md) {
   const el=document.getElementById('chartsContent');
-  const totals=VEHICLES.map((v,i)=>({v,col:VCOLS[i%VCOLS.length],earn:md[v].reduce((s,d)=>s+d.earn,0),exp:md[v].reduce((s,d)=>s+d.exp,0),net:md[v].reduce((s,d)=>s+d.net,0),kaira:md[v].reduce((s,d)=>s+d.kaira,0),jit:md[v].reduce((s,d)=>s+d.jit,0)}));
+  const totals=VEHICLES.map((v,i)=>{
+    const t={v,col:VCOLS[i%VCOLS.length],earn:0,exp:0,net:0};
+    CLIENT_CONFIG.forEach(c=>t[c.key]=0);
+    md[v].forEach(d=>{
+      t.earn+=d.earn; t.exp+=d.exp; t.net+=d.net;
+      CLIENT_CONFIG.forEach(c=>t[c.key]+=(d[c.key]||0));
+    });
+    return t;
+  });
   const maxE=Math.max(...totals.map(t=>t.earn),1);
+
+  // Per-vehicle client mini-details (first 2 named clients shown inline)
+  const namedPairs = NAMED_CLIENTS.slice(0,4);
+
   el.innerHTML=`
   <div class="chart-wrap"><div class="chart-title">Earnings Comparison — All Vehicles · ${year}</div><div class="chart-sub">Annual total earnings per vehicle</div><canvas id="ch-cmp-earn"></canvas></div>
   <div class="chart-wrap"><div class="chart-title">Net Profit Comparison — All Vehicles · ${year}</div><div class="chart-sub">Green = profit · Red = loss</div><canvas id="ch-cmp-net"></canvas></div>
@@ -1127,21 +1231,29 @@ function renderCompare(year,md) {
     ${totals.map((t,i)=>{
       const ratio=t.earn>0?((t.exp/t.earn)*100).toFixed(0):0;
       const nc=t.net>=0?'var(--green)':'var(--red)';
+      const clientMini = namedPairs.map(c=>`
+        <div style="flex:1">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${c.label.toUpperCase()}</div>
+          <div class="mono" style="font-size:12px;color:${c.color}">${fmtK(t[c.key]||0)}</div>
+        </div>`).join('');
       return `<div class="compare-card">
         <div class="cv-label" style="color:${t.col}">${t.v}</div>
         <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
           <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Earnings</div><div class="mono" style="font-size:15px;color:var(--green);font-weight:700">${fmtK(t.earn)}</div></div>
           <div style="flex:1;min-width:80px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Net</div><div class="mono" style="font-size:15px;color:${nc};font-weight:700">${fmtK(t.net)}</div></div>
         </div>
-        <div style="display:flex;gap:10px;margin-bottom:12px">
-          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">KAIRA</div><div class="mono" style="font-size:12px;color:var(--kaira)">${fmtK(t.kaira)}</div></div>
-          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">JIT</div><div class="mono" style="font-size:12px;color:var(--jit)">${fmtK(t.jit)}</div></div>
-          <div style="flex:1"><div style="font-size:9px;color:var(--muted);margin-bottom:2px">Exp Ratio</div><div class="mono" style="font-size:12px;color:${ratio>70?'var(--red)':ratio>40?'var(--kaira)':'var(--green)'}">${ratio}%</div></div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          ${clientMini}
+          <div style="flex:1">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px">EXP RATIO</div>
+            <div class="mono" style="font-size:12px;color:${ratio>70?'var(--red)':ratio>40?'var(--kaira)':'var(--green)'}">${ratio}%</div>
+          </div>
         </div>
         <div style="height:4px;background:var(--border);border-radius:2px"><div style="height:4px;border-radius:2px;background:${t.col};width:${(t.earn/maxE*100).toFixed(0)}%;transition:width .6s"></div></div>
       </div>`;
     }).join('')}
   </div>`;
+
   CI['ch-cmp-earn']=new Chart(document.getElementById('ch-cmp-earn'),{type:'bar',data:{labels:totals.map(t=>t.v),datasets:[{label:'Total Earnings',data:totals.map(t=>t.earn),backgroundColor:VCOLS.map(c=>c+'88'),borderColor:VCOLS,borderWidth:1.5,borderRadius:6}]},options:{...CD}});
   CI['ch-cmp-net']=new Chart(document.getElementById('ch-cmp-net'),{type:'bar',data:{labels:totals.map(t=>t.v),datasets:[{label:'Net Profit',data:totals.map(t=>t.net),backgroundColor:totals.map(t=>t.net>=0?'#22c55e88':'#ef444488'),borderColor:totals.map(t=>t.net>=0?'#22c55e':'#ef4444'),borderWidth:1.5,borderRadius:6}]},options:{...CD}});
   CI['ch-cmp-lines']=new Chart(document.getElementById('ch-cmp-lines'),{type:'line',data:{labels:MONTHS_S,datasets:VEHICLES.map((v,i)=>({label:v,data:md[v].map(d=>d.earn),borderColor:VCOLS[i%VCOLS.length],backgroundColor:'transparent',pointBackgroundColor:VCOLS[i%VCOLS.length],pointRadius:3,tension:.35,borderWidth:2}))},options:{...CD}});
@@ -1150,22 +1262,74 @@ function renderCompare(year,md) {
 
 function renderClientTrend(year,md) {
   const el=document.getElementById('chartsContent');
-  const fK=Array(12).fill(0),fJ=Array(12).fill(0),fO=Array(12).fill(0);
-  VEHICLES.forEach(v=>{for(let m=0;m<12;m++){fK[m]+=md[v][m].kaira;fJ[m]+=md[v][m].jit;fO[m]+=md[v][m].other;}});
+
+  // ── Build fleet-level monthly totals per client dynamically ──
+  const fleetByClient={};
+  CLIENT_CONFIG.forEach(c=>fleetByClient[c.key]=Array(12).fill(0));
+  VEHICLES.forEach(v=>{
+    for(let m=0;m<12;m++){
+      CLIENT_CONFIG.forEach(c=>{
+        fleetByClient[c.key][m]+=(md[v][m][c.key]||0);
+      });
+    }
+  });
+
+  // ── First two named clients for the head-to-head chart ──
+  const [c0,c1]=NAMED_CLIENTS;
+
   el.innerHTML=`
-  <div class="chart-wrap"><div class="chart-title">Fleet Client Earnings Trend — ${year}</div><div class="chart-sub">Monthly KAIRA · JIT · Others across all vehicles</div><canvas id="ch-flt"></canvas></div>
-  <div class="chart-wrap"><div class="chart-title">KAIRA vs JIT Head-to-Head — ${year}</div><div class="chart-sub">Direct monthly comparison of your two major clients</div><canvas id="ch-kj"></canvas></div>
+  <div class="chart-wrap"><div class="chart-title">Fleet Client Earnings Trend — ${year}</div><div class="chart-sub">${CLIENT_CONFIG.map(c=>c.label).join(' · ')} across all vehicles</div><canvas id="ch-flt"></canvas></div>
+  ${c0&&c1?`<div class="chart-wrap"><div class="chart-title">${c0.label} vs ${c1.label} Head-to-Head — ${year}</div><div class="chart-sub">Direct monthly comparison of your two major clients</div><canvas id="ch-kj"></canvas></div>`:''}
   <div class="section-title" style="margin-bottom:12px">CLIENT MIX PER VEHICLE — ${year}</div>
   <div class="compare-grid">
     ${VEHICLES.map((v,i)=>`<div class="compare-card"><div class="cv-label" style="color:${VCOLS[i%VCOLS.length]}">${v}</div><canvas id="ch-mix-${i}" style="max-height:150px"></canvas></div>`).join('')}
   </div>`;
-  CI['ch-flt']=new Chart(document.getElementById('ch-flt'),{type:'line',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:fK,borderColor:'#f59e0b',backgroundColor:'#f59e0b28',fill:true,tension:.4,borderWidth:2},{label:'JIT',data:fJ,borderColor:'#06b6d4',backgroundColor:'#06b6d428',fill:true,tension:.4,borderWidth:2},{label:'Others',data:fO,borderColor:'#a78bfa',backgroundColor:'#a78bfa28',fill:true,tension:.4,borderWidth:2}]},options:{...CD}});
-  CI['ch-kj']=new Chart(document.getElementById('ch-kj'),{type:'bar',data:{labels:MONTHS_S,datasets:[{label:'KAIRA',data:fK,backgroundColor:'#f59e0b88',borderColor:'#f59e0b',borderWidth:1.5,borderRadius:4},{label:'JIT',data:fJ,backgroundColor:'#06b6d488',borderColor:'#06b6d4',borderWidth:1.5,borderRadius:4}]},options:{...CD}});
+
+  CI['ch-flt']=new Chart(document.getElementById('ch-flt'),{
+    type:'line',
+    data:{
+      labels:MONTHS_S,
+      datasets:CLIENT_CONFIG.map(c=>({
+        label:c.label,
+        data:fleetByClient[c.key],
+        borderColor:c.hex,
+        backgroundColor:c.hex+'28',
+        fill:true,tension:.4,borderWidth:2
+      }))
+    },
+    options:{...CD}
+  });
+
+  if(c0&&c1&&document.getElementById('ch-kj')){
+    CI['ch-kj']=new Chart(document.getElementById('ch-kj'),{
+      type:'bar',
+      data:{
+        labels:MONTHS_S,
+        datasets:[
+          {label:c0.label,data:fleetByClient[c0.key],backgroundColor:c0.hex+'88',borderColor:c0.hex,borderWidth:1.5,borderRadius:4},
+          {label:c1.label,data:fleetByClient[c1.key],backgroundColor:c1.hex+'88',borderColor:c1.hex,borderWidth:1.5,borderRadius:4}
+        ]
+      },
+      options:{...CD}
+    });
+  }
+
   VEHICLES.forEach((v,i)=>{
     const d=md[v];
-    const tK=d.reduce((s,x)=>s+x.kaira,0),tJ=d.reduce((s,x)=>s+x.jit,0),tO=d.reduce((s,x)=>s+x.other,0);
     const cid=`ch-mix-${i}`;
-    CI[cid]=new Chart(document.getElementById(cid),{type:'doughnut',data:{labels:['KAIRA','JIT','Others'],datasets:[{data:[tK,tJ,tO],backgroundColor:['#f59e0b99','#06b6d499','#a78bfa99'],borderColor:['#f59e0b','#06b6d4','#a78bfa'],borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:10},boxWidth:10,padding:10}},tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:8,callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}}}});
+    CI[cid]=new Chart(document.getElementById(cid),{
+      type:'doughnut',
+      data:{
+        labels:CLIENT_CONFIG.map(c=>c.label),
+        datasets:[{
+          data:CLIENT_CONFIG.map(c=>d.reduce((s,x)=>s+(x[c.key]||0),0)),
+          backgroundColor:CLIENT_CONFIG.map(c=>c.hex+'99'),
+          borderColor:CLIENT_CONFIG.map(c=>c.hex),
+          borderWidth:1.5
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:'#e4e4f0',font:{family:"'Syne',sans-serif",size:10},boxWidth:10,padding:10}},tooltip:{backgroundColor:'#14141e',borderColor:'#1f1f2e',borderWidth:1,titleColor:'#f0a500',bodyColor:'#e4e4f0',padding:8,callbacks:{label:ctx=>' '+fmtK(ctx.raw)}}}}
+    });
   });
 }
 
@@ -1204,7 +1368,6 @@ async function saveCash() {
 async function loadCash() {
   const month     = parseInt(document.getElementById('cashMonth').value);
   const year      = parseInt(document.getElementById('cashYear').value);
-  // ★ NEW: read the vehicle filter from the ledger dropdown
   const vehicle   = document.getElementById('cashLedgerVehicle').value;
 
   const entriesEl = document.getElementById('cashEntries');
@@ -1214,7 +1377,6 @@ async function loadCash() {
 
   entriesEl.innerHTML='<div class="cash-empty">Loading...</div>';
 
-  // Update salary box label
   if (labelEl) {
     labelEl.textContent = vehicle
       ? `${vehicle} — deduct from salary`
@@ -1222,7 +1384,6 @@ async function loadCash() {
   }
 
   try {
-    // ★ Pass vehicle filter through to the data layer
     const rows = await getCashRows(month, year, vehicle);
 
     const total    = rows.reduce((s,r)=>s+Number(r.amount),0);
@@ -1255,7 +1416,6 @@ async function loadCash() {
       return;
     }
 
-    // Running total — oldest→newest then reverse for display
     const sorted=[...rows].sort((a,b)=>a.date.localeCompare(b.date));
     let running=0;
     const withRunning=sorted.map(r=>{running+=Number(r.amount);return{...r,running};});
@@ -1338,7 +1498,6 @@ async function generateReport() {
 
     const monthLabel = MONTHS[month] + ' ' + year;
 
-    // ── Aggregate everything to ONE row per day ──────────────────────
     // Collect all unique dates
     const allDates = [...new Set([
       ...earnings.map(e=>e.date),
@@ -1346,20 +1505,19 @@ async function generateReport() {
       ...cashRows.map(e=>e.date)
     ])].sort();
 
-    // Build per-day aggregates
+    // Build per-day aggregates with dynamic clients
     const dayMap = {};
     allDates.forEach(d => {
-      dayMap[d] = { date:d, jit:0, kaira:0, other:0, totalRev:0, totalExp:0, totalCash:0,
-                    expNotes:[], cashNotes:[] };
+      const entry = { date:d, totalRev:0, totalExp:0, totalCash:0, expNotes:[], cashNotes:[] };
+      CLIENT_CONFIG.forEach(c => entry[c.key] = 0);
+      dayMap[d] = entry;
     });
 
     earnings.forEach(e => {
-      const c = detectClient(e.note||'');
+      const cKey = detectClient(e.note||'');
       const a = Number(e.amount);
       dayMap[e.date].totalRev += a;
-      if (c==='JIT')        dayMap[e.date].jit   += a;
-      else if (c==='KAIRA') dayMap[e.date].kaira += a;
-      else                  dayMap[e.date].other += a;
+      dayMap[e.date][cKey] = (dayMap[e.date][cKey]||0) + a;
     });
 
     expenses.forEach(e => {
@@ -1374,20 +1532,18 @@ async function generateReport() {
 
     const rows = allDates.map(d => dayMap[d]);
 
-    // ── Grand totals ─────────────────────────────────────────────────
+    // Grand totals
     const totalRev   = rows.reduce((s,r)=>s+r.totalRev,0);
-    const totalJit   = rows.reduce((s,r)=>s+r.jit,0);
-    const totalKaira = rows.reduce((s,r)=>s+r.kaira,0);
-    const totalOther = rows.reduce((s,r)=>s+r.other,0);
     const totalExp   = rows.reduce((s,r)=>s+r.totalExp,0);
     const totalCash  = rows.reduce((s,r)=>s+r.totalCash,0);
     const netProfit  = totalRev - totalExp;
+    const clientTotalsReport = {};
+    CLIENT_CONFIG.forEach(c => {
+      clientTotalsReport[c.key] = rows.reduce((s,r)=>s+(r[c.key]||0),0);
+    });
 
-    buildPreviewTable(vehicle, monthLabel, rows,
-      totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit);
-
-    buildXlsx(vehicle, month, year, monthLabel, rows,
-      totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit);
+    buildPreviewTable(vehicle, monthLabel, rows, totalRev, totalExp, totalCash, netProfit, clientTotalsReport);
+    buildXlsx(vehicle, month, year, monthLabel, rows, totalRev, totalExp, totalCash, netProfit, clientTotalsReport);
 
     toast('rptToast', `Report for ${vehicle} — ${monthLabel} downloaded!`, true);
 
@@ -1398,61 +1554,69 @@ async function generateReport() {
   btn.textContent='⬇ Download Excel Report'; btn.disabled=false;
 }
 
-// ── helpers ───────────────────────────────────────────────────────────
 const fmtN  = v => v ? Number(v).toLocaleString('en-SG',{minimumFractionDigits:2}) : '-';
 const fmtD  = d => new Date(d+'T00:00:00').toLocaleDateString('en-SG',{day:'2-digit',month:'short'});
 const fmtDL = d => new Date(d+'T00:00:00').toLocaleDateString('en-SG',{day:'2-digit',month:'short',year:'numeric'});
 
-// ── Preview table (one row per day) ──────────────────────────────────
 function buildPreviewTable(vehicle, monthLabel, rows,
-    totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit) {
+    totalRev, totalExp, totalCash, netProfit, clientTotalsReport) {
 
   document.getElementById('rptPreviewTitle').textContent = `${vehicle} — ${monthLabel}`;
+
+  // Dynamic summary badges: one per client + revenue / expenses / net / cash
+  const clientBadgesHtml = CLIENT_CONFIG.map(c =>
+    `<span style="background:${c.hex}22;color:${c.color};border:1px solid ${c.hex}44;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">${c.label} ${fmt(clientTotalsReport[c.key]||0)}</span>`
+  ).join('');
+
   document.getElementById('rptSummaryBadges').innerHTML = `
     <span style="background:var(--green-dim);color:var(--green);border:1px solid #22c55e44;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Revenue ${fmt(totalRev)}</span>
+    ${clientBadgesHtml}
     <span style="background:var(--red-dim);color:var(--red);border:1px solid #ef444433;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Expenses ${fmt(totalExp)}</span>
     <span style="background:${netProfit>=0?'var(--green-dim)':'var(--red-dim)'};color:${netProfit>=0?'var(--green)':'var(--red)'};border:1px solid ${netProfit>=0?'#22c55e44':'#ef444433'};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Net ${fmt(netProfit)}</span>
     <span style="background:#06b6d422;color:#06b6d4;border:1px solid #06b6d433;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700">Cash ${fmt(totalCash)}</span>`;
 
-  // Column definitions: [label, color, align]
-  const TH = [
-    ['DATE',        'var(--muted)',  'left'],
-    ['REVENUE',     'var(--green)',  'right'],
-    ['JIT',         'var(--jit)',    'right'],
-    ['KAIRA',       'var(--kaira)',  'right'],
-    ['OTHERS',      'var(--other)',  'right'],
-    ['EXPENSES',    'var(--red)',    'right'],
-    ['EXP DETAILS', 'var(--muted)', 'left'],
-    ['CASH OUT',    '#06b6d4',      'right'],
-    ['CASH DETAILS','var(--muted)', 'left'],
-  ];
-
   const th = s => `padding:9px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;background:var(--surface);border-bottom:2px solid var(--border);white-space:nowrap;text-align:${s}`;
-  let html = `<thead><tr>${TH.map(([l,c,a])=>`<th style="${th(a)};color:${c}">${l}</th>`).join('')}</tr></thead><tbody>`;
+
+  // Dynamic column headers: DATE | REVENUE | [per client] | EXPENSES | EXP DETAILS | CASH OUT | CASH DETAILS
+  const clientHeaders = CLIENT_CONFIG.map(c =>
+    `<th style="${th('right')};color:${c.color}">${c.label.toUpperCase()}</th>`
+  ).join('');
+
+  let html = `<thead><tr>
+    <th style="${th('left')};color:var(--muted)">DATE</th>
+    <th style="${th('right')};color:var(--green)">REVENUE</th>
+    ${clientHeaders}
+    <th style="${th('right')};color:var(--red)">EXPENSES</th>
+    <th style="${th('left')};color:var(--muted)">EXP DETAILS</th>
+    <th style="${th('right')};color:#06b6d4">CASH OUT</th>
+    <th style="${th('left')};color:var(--muted)">CASH DETAILS</th>
+  </tr></thead><tbody>`;
 
   rows.forEach(r => {
-    const td  = (v,col,bold)=>`<td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:${col};text-align:right;${bold?'font-weight:700':''}white-space:nowrap">${v}</td>`;
+    const clientCells = CLIENT_CONFIG.map(c =>
+      `<td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:${c.color};text-align:right;white-space:nowrap">${r[c.key]?fmtN(r[c.key]):'-'}</td>`
+    ).join('');
     const tdt = (v)=>`<td style="padding:7px 11px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v}</td>`;
     html += `<tr>
       <td style="padding:7px 11px;border-top:1px solid var(--border);color:var(--accent);font-weight:700;white-space:nowrap">${fmtD(r.date)}</td>
-      ${td(r.totalRev?fmtN(r.totalRev):'-','var(--green)',true)}
-      ${td(r.jit  ?fmtN(r.jit)  :'-','var(--jit)',false)}
-      ${td(r.kaira?fmtN(r.kaira):'-','var(--kaira)',false)}
-      ${td(r.other?fmtN(r.other):'-','var(--other)',false)}
-      ${td(r.totalExp?fmtN(r.totalExp):'-','var(--red)',true)}
+      <td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:var(--green);font-weight:700;text-align:right;white-space:nowrap">${r.totalRev?fmtN(r.totalRev):'-'}</td>
+      ${clientCells}
+      <td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:var(--red);font-weight:700;text-align:right;white-space:nowrap">${r.totalExp?fmtN(r.totalExp):'-'}</td>
       ${tdt([...new Set(r.expNotes)].join(', '))}
-      ${td(r.totalCash?fmtN(r.totalCash):'-','#06b6d4',true)}
+      <td class="mono" style="padding:7px 11px;border-top:1px solid var(--border);color:#06b6d4;font-weight:700;text-align:right;white-space:nowrap">${r.totalCash?fmtN(r.totalCash):'-'}</td>
       ${tdt([...new Set(r.cashNotes)].join(', '))}
     </tr>`;
   });
 
-  // Grand total row
+  // Dynamic total row
+  const clientTotalCells = CLIENT_CONFIG.map(c =>
+    `<td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:${c.color};font-weight:700;text-align:right">${fmtN(clientTotalsReport[c.key]||0)}</td>`
+  ).join('');
+
   html += `<tr style="background:var(--surface)">
     <td style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--accent);font-weight:800;font-size:12px">TOTAL</td>
     <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--green);font-weight:800;text-align:right">${fmtN(totalRev)}</td>
-    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--jit);font-weight:700;text-align:right">${fmtN(totalJit)}</td>
-    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--kaira);font-weight:700;text-align:right">${fmtN(totalKaira)}</td>
-    <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--other);font-weight:700;text-align:right">${fmtN(totalOther)}</td>
+    ${clientTotalCells}
     <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:var(--red);font-weight:800;text-align:right">${fmtN(totalExp)}</td>
     <td style="padding:9px 11px;border-top:2px solid var(--accent);font-size:11px;color:var(--muted)">Net: <span class="mono" style="color:${netProfit>=0?'var(--green)':'var(--red)'};font-weight:800">${fmtN(netProfit)}</span></td>
     <td class="mono" style="padding:9px 11px;border-top:2px solid var(--accent);color:#06b6d4;font-weight:800;text-align:right">${fmtN(totalCash)}</td>
@@ -1464,9 +1628,8 @@ function buildPreviewTable(vehicle, monthLabel, rows,
   document.getElementById('rptPreview').style.display = 'block';
 }
 
-// ── Excel (one row per day) ───────────────────────────────────────────
 function buildXlsx(vehicle, month, year, monthLabel, rows,
-                   totalRev, totalJit, totalKaira, totalOther, totalExp, totalCash, netProfit) {
+                   totalRev, totalExp, totalCash, netProfit, clientTotalsReport) {
 
   if (typeof XLSX === 'undefined') {
     alert('Excel library not loaded. Please check your internet connection and try again.');
@@ -1475,31 +1638,31 @@ function buildXlsx(vehicle, month, year, monthLabel, rows,
 
   const wb = XLSX.utils.book_new();
   const wsData = [];
+  const totalCols = 4 + CLIENT_CONFIG.length; // DATE + REVENUE + [clients] + EXP + EXP_NOTES + CASH + CASH_NOTES
 
-  // ── Title block ──────────────────────────────────────────────────
-  wsData.push([`MONTHLY VEHICLE REPORT — ${vehicle}`,'','','','','','','','']);
-  wsData.push([`Period: ${monthLabel}   |   Generated: ${new Date().toLocaleDateString('en-SG')}`,'','','','','','','','']);
-  wsData.push([]); // spacer
+  wsData.push([`MONTHLY VEHICLE REPORT — ${vehicle}`, ...Array(totalCols-1).fill('')]);
+  wsData.push([`Period: ${monthLabel}   |   Generated: ${new Date().toLocaleDateString('en-SG')}`, ...Array(totalCols-1).fill('')]);
+  wsData.push([]);
 
-  // ── Summary block ────────────────────────────────────────────────
-  wsData.push(['SUMMARY','','','','','','','','']);
-  wsData.push(['Total Revenue ($)', totalRev, '', 'Total Expenses ($)', totalExp, '', 'Net Profit ($)', netProfit, '']);
-  wsData.push(['JIT ($)', totalJit, '', 'KAIRA ($)', totalKaira, '', 'Others ($)', totalOther, '']);
-  wsData.push(['Cash Paid Out ($)', totalCash, '', '', '', '', '', '', '']);
-  wsData.push([]); // spacer
+  // Summary block
+  wsData.push(['SUMMARY', ...Array(totalCols-1).fill('')]);
+  const summaryRow1 = ['Total Revenue ($)', totalRev, '', 'Total Expenses ($)', totalExp, '', 'Net Profit ($)', netProfit];
+  wsData.push(summaryRow1);
+  const summaryRow2 = CLIENT_CONFIG.flatMap(c => [c.label+' ($)', clientTotalsReport[c.key]||0, '']);
+  wsData.push(summaryRow2.slice(0,8));
+  wsData.push(['Cash Paid Out ($)', totalCash]);
+  wsData.push([]);
 
-  // ── Column headers ───────────────────────────────────────────────
-  wsData.push(['DATE', 'REVENUE ($)', 'JIT ($)', 'KAIRA ($)', 'OTHERS ($)',
-               'EXPENSES ($)', 'EXPENSE DETAILS', 'CASH OUT ($)', 'CASH DETAILS']);
+  // Column headers
+  const headerRow = ['DATE', 'REVENUE ($)', ...CLIENT_CONFIG.map(c=>c.label+' ($)'), 'EXPENSES ($)', 'EXPENSE DETAILS', 'CASH OUT ($)', 'CASH DETAILS'];
+  wsData.push(headerRow);
 
-  // ── One row per day ──────────────────────────────────────────────
+  // Data rows
   rows.forEach(r => {
     wsData.push([
       fmtDL(r.date),
-      r.totalRev  || '',
-      r.jit       || '',
-      r.kaira     || '',
-      r.other     || '',
+      r.totalRev || '',
+      ...CLIENT_CONFIG.map(c => r[c.key] || ''),
       r.totalExp  || '',
       [...new Set(r.expNotes)].join(', '),
       r.totalCash || '',
@@ -1507,31 +1670,33 @@ function buildXlsx(vehicle, month, year, monthLabel, rows,
     ]);
   });
 
-  // ── Totals row ───────────────────────────────────────────────────
+  // Totals row
   wsData.push([]);
-  wsData.push(['TOTAL', totalRev, totalJit, totalKaira, totalOther,
-               totalExp, `Net Profit: ${totalRev - totalExp >= 0 ? '' : '-'}${Math.abs(totalRev-totalExp).toFixed(2)}`,
-               totalCash, '']);
+  wsData.push([
+    'TOTAL', totalRev,
+    ...CLIENT_CONFIG.map(c => clientTotalsReport[c.key]||0),
+    totalExp,
+    `Net Profit: ${netProfit >= 0 ? '' : '-'}${Math.abs(netProfit).toFixed(2)}`,
+    totalCash, ''
+  ]);
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // Column widths
+  // Column widths: DATE + REVENUE + [per client 12 each] + EXP + EXP_NOTES + CASH + CASH_NOTES
   ws['!cols'] = [
-    {wch:16}, // Date
-    {wch:14}, // Revenue
-    {wch:12}, // JIT
-    {wch:12}, // KAIRA
-    {wch:12}, // Others
-    {wch:14}, // Expenses
-    {wch:28}, // Exp details
-    {wch:13}, // Cash
-    {wch:24}, // Cash details
+    {wch:16},
+    {wch:14},
+    ...CLIENT_CONFIG.map(()=>({wch:14})),
+    {wch:14},
+    {wch:28},
+    {wch:13},
+    {wch:24},
   ];
 
-  // Merge title rows across all 9 columns
+  const lastCol = 3 + CLIENT_CONFIG.length;
   ws['!merges'] = [
-    {s:{r:0,c:0},e:{r:0,c:8}},
-    {s:{r:1,c:0},e:{r:1,c:8}},
+    {s:{r:0,c:0},e:{r:0,c:lastCol}},
+    {s:{r:1,c:0},e:{r:1,c:lastCol}},
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Monthly Report');
@@ -1539,7 +1704,6 @@ function buildXlsx(vehicle, month, year, monthLabel, rows,
   const fileName = `Report_${vehicle}_${MONTHS[month]}_${year}.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
-
 
 // ══════════════════════════════════════════════
 //  AUTH GUARD
@@ -1566,6 +1730,8 @@ async function signOut(){
 }
 
 function initApp(){
+  buildClientPills();
+  updateNoteLabel();
   document.getElementById('addDate').value=todayStr();
   document.getElementById('cashDate').value=todayStr();
   populateDateSelects();
