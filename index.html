@@ -212,6 +212,112 @@
   .user-email{font-size:10px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .btn-logout{padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
   .btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+    /* ══════════════════════════════════════
+     SETTLE DRIVER TAB STYLES
+  ══════════════════════════════════════ */
+  .stl-wrap{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+  @media(max-width:720px){.stl-wrap{grid-template-columns:1fr}}
+
+  .stl-panel{background:var(--card);border:1px solid #f0a50033;border-radius:14px;padding:20px;position:sticky;top:80px}
+  .stl-panel-title{font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:16px}
+
+  .stl-chk-section-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin:14px 0 7px}
+  .stl-chk-list{display:flex;flex-direction:column;gap:4px}
+
+  .stl-chk-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:background .13s,border-color .13s;user-select:none}
+  .stl-chk-item:hover{background:#ffffff09}
+  .stl-chk-item.is-checked{border-color:#f0a50033;background:var(--accent-dim)}
+  .stl-chk-item.is-cash.is-checked{border-color:#06b6d433;background:#06b6d412}
+
+  .stl-chk-box{width:15px;height:15px;border-radius:4px;flex-shrink:0;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;transition:all .13s}
+  .stl-chk-item.is-checked .stl-chk-box{background:var(--accent);border-color:var(--accent);color:#000}
+  .stl-chk-item.is-cash.is-checked .stl-chk-box{background:#06b6d4;border-color:#06b6d4;color:#000}
+
+  .stl-chk-name{font-size:12px;font-weight:600;flex:1}
+  .stl-chk-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap}
+  .stl-chk-item.is-checked .stl-chk-hint{color:var(--accent)}
+  .stl-chk-item.is-cash.is-checked .stl-chk-hint{color:#06b6d4}
+
+  .stl-div{height:1px;background:var(--border);margin:14px 0}
+
+  .stl-run-btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;background:var(--accent);color:#000;letter-spacing:.3px;margin-top:14px;transition:opacity .2s,transform .1s}
+  .stl-run-btn:active{transform:scale(.98)}
+  .stl-run-btn:disabled{opacity:.45;cursor:default}
+
+  .stl-result{display:none}
+  .stl-result.on{display:block}
+
+  /* Verdict */
+  .stl-verdict{border-radius:16px;padding:30px 24px 24px;margin-bottom:18px;text-align:center;border:1px solid;position:relative;overflow:hidden}
+  .stl-verdict::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,var(--vglow,#f0a50010) 0%,transparent 70%);pointer-events:none}
+  .stl-verdict.pos{border-color:#ef444444;--vglow:#ef444418}
+  .stl-verdict.neg{border-color:#22c55e44;--vglow:#22c55e18}
+  .stl-verdict.zero{border-color:var(--border);--vglow:#ffffff08}
+
+  .stl-v-icon{font-size:32px;margin-bottom:8px}
+  .stl-v-tag{display:inline-flex;align-items:center;padding:3px 12px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+  .stl-verdict.pos .stl-v-tag{background:#ef444422;color:var(--red);border:1px solid #ef444444}
+  .stl-verdict.neg .stl-v-tag{background:#22c55e18;color:var(--green);border:1px solid #22c55e44}
+  .stl-verdict.zero .stl-v-tag{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+
+  .stl-v-amt{font-family:'JetBrains Mono',monospace;font-size:46px;font-weight:800;line-height:1;margin-bottom:6px}
+  .stl-verdict.pos .stl-v-amt{color:var(--red)}
+  .stl-verdict.neg .stl-v-amt{color:var(--green)}
+  .stl-verdict.zero .stl-v-amt{color:var(--muted)}
+
+  .stl-v-action{font-size:14px;font-weight:700;margin-bottom:6px}
+  .stl-verdict.pos .stl-v-action{color:var(--red)}
+  .stl-verdict.neg .stl-v-action{color:var(--green)}
+  .stl-verdict.zero .stl-v-action{color:var(--muted)}
+  .stl-v-sub{font-size:11px;color:var(--muted);line-height:1.7;max-width:380px;margin:0 auto}
+
+  /* Equation bar */
+  .stl-eq-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;margin-bottom:18px}
+  .stl-eq-chip{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700}
+  .stl-eq-op{font-size:18px;color:var(--muted);font-weight:300}
+  .stl-eq-eq{font-size:18px;color:var(--accent);font-weight:700}
+
+  /* Breakdown columns */
+  .stl-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+  @media(max-width:480px){.stl-cols{grid-template-columns:1fr}}
+
+  .stl-col-card{background:var(--card);border-radius:12px;padding:14px 16px;border:1px solid}
+  .stl-col-card.exp-col{border-color:#ef444433}
+  .stl-col-card.cash-col{border-color:#06b6d433}
+
+  .stl-col-hdr{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+  .stl-col-card.exp-col .stl-col-hdr{color:var(--red)}
+  .stl-col-card.cash-col .stl-col-hdr{color:#06b6d4}
+
+  .stl-col-line{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1f1f2e55;font-size:12px}
+  .stl-col-line:last-of-type{border-bottom:none}
+  .stl-col-line-name{color:var(--muted)}
+  .stl-col-line-amt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+  .exp-col .stl-col-line-amt{color:var(--red)}
+  .cash-col .stl-col-line-amt{color:#06b6d4}
+
+  .stl-col-total{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+  .stl-col-total-label{font-size:10px;font-weight:700;color:var(--text)}
+  .stl-col-total-amt{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800}
+  .exp-col .stl-col-total-amt{color:var(--red)}
+  .cash-col .stl-col-total-amt{color:#06b6d4}
+
+  /* Ledger */
+  .stl-ledger{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .stl-ledger-hdr{padding:11px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .stl-ledger-hdr span{color:var(--text);font-size:11px;letter-spacing:0;text-transform:none}
+  .stl-l-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #1f1f2e44;font-size:12px;transition:background .1s}
+  .stl-l-row:last-child{border-bottom:none}
+  .stl-l-row:hover{background:#ffffff04}
+  .stl-l-date{width:50px;flex-shrink:0;color:var(--accent);font-weight:700;font-size:11px}
+  .stl-l-badge{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;white-space:nowrap}
+  .stl-l-badge.exp{background:var(--red-dim);color:var(--red);border:1px solid #ef444433}
+  .stl-l-badge.cash{background:#06b6d418;color:#06b6d4;border:1px solid #06b6d433}
+  .stl-l-note{flex:1;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stl-l-amt{font-family:'JetBrains Mono',monospace;font-weight:700;white-space:nowrap;font-size:12px}
+  .stl-l-amt.exp{color:var(--red)}
+  .stl-l-amt.cash{color:#06b6d4}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -237,6 +343,7 @@
       <button class="tab-btn" data-tab="cash">💵 Cash on Hand</button>
       <button class="tab-btn" data-tab="vehicles">🚛 Vehicles</button>
       <button class="tab-btn" data-tab="report">🖨️ Report</button>
+      <button class="tab-btn" data-tab="settle">🧾 Settle Driver</button>
     </div>
   </div>
 </div>
@@ -501,7 +608,123 @@
     </div>
   </div>
 
-</div>
+   <!-- ══ SETTLE DRIVER ══ -->
+  <div class="page" id="page-settle">
+    <div class="stl-wrap">
+
+      <!-- LEFT: Controls -->
+      <div>
+        <div class="stl-panel">
+          <div class="stl-panel-title">🧾 Settle Driver</div>
+
+          <div class="field">
+            <label class="label">Vehicle</label>
+            <select class="select" id="stlVehicle" onchange="stlOnVehicleChange()">
+              <option value="">Select vehicle...</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <div class="field" style="flex:2;margin-bottom:12px">
+              <label class="label">Month</label>
+              <select class="select" id="stlMonth" onchange="stlOnVehicleChange()"></select>
+            </div>
+            <div class="field" style="flex:1;margin-bottom:12px">
+              <label class="label">Year</label>
+              <select class="select" id="stlYear" onchange="stlOnVehicleChange()"></select>
+            </div>
+          </div>
+
+          <div class="stl-div"></div>
+
+          <div class="stl-chk-section-label">Expenses to include</div>
+          <div class="stl-chk-list" id="stlExpGrid"></div>
+
+          <div class="stl-div"></div>
+
+          <div class="stl-chk-section-label">Cash paid out to include</div>
+          <div class="stl-chk-list" id="stlCashGrid"></div>
+
+          <button class="stl-run-btn" id="stlRunBtn" onclick="runSettlement()">Calculate →</button>
+          <div class="toast" id="stlToast"></div>
+
+          <div style="margin-top:14px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:12px 14px;font-size:11px;color:var(--muted);line-height:1.85">
+            <b style="color:var(--text)">Logic:</b><br>
+            <b style="color:#06b6d4">Cash Out</b> − <b style="color:var(--red)">Expenses</b> = Difference<br>
+            <span style="color:var(--red)">+ve</span> → driver has our cash → <b>deduct from salary</b><br>
+            <span style="color:var(--green)">−ve</span> → driver out of pocket → <b>pay extra with salary</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Result -->
+      <div class="stl-result" id="stlResult">
+
+        <!-- Equation bar -->
+        <div class="stl-eq-bar">
+          <div class="stl-eq-chip" style="background:#06b6d415;color:#06b6d4;border:1px solid #06b6d433">
+            <span style="font-size:10px;font-weight:600;font-family:'Syne',sans-serif">CASH OUT</span>
+            <span id="eqCash">S$ 0.00</span>
+          </div>
+          <span class="stl-eq-op">−</span>
+          <div class="stl-eq-chip" style="background:var(--red-dim);color:var(--red);border:1px solid #ef444433">
+            <span style="font-size:10px;font-weight:600;font-family:'Syne',sans-serif">EXPENSES</span>
+            <span id="eqExp">S$ 0.00</span>
+          </div>
+          <span class="stl-eq-eq">=</span>
+          <div class="stl-eq-chip" id="eqResultChip" style="background:var(--surface);border:1px solid var(--border)">
+            <span id="eqResult" style="font-size:15px">S$ 0.00</span>
+          </div>
+        </div>
+
+        <!-- Verdict -->
+        <div class="stl-verdict zero" id="stlVerdict">
+          <div class="stl-v-icon" id="stlVIcon">⚖️</div>
+          <div><span class="stl-v-tag" id="stlVTag">CALCULATING</span></div>
+          <div class="stl-v-amt" id="stlVAmt">S$ 0.00</div>
+          <div class="stl-v-action" id="stlVAction">—</div>
+          <div class="stl-v-sub" id="stlVSub"></div>
+        </div>
+
+        <!-- Breakdown columns -->
+        <div class="stl-cols">
+          <div class="stl-col-card exp-col">
+            <div class="stl-col-hdr">🔴 Expenses (selected)</div>
+            <div id="stlExpLines"><div style="font-size:11px;color:var(--muted);padding:6px 0">—</div></div>
+            <div class="stl-col-total">
+              <span class="stl-col-total-label">TOTAL</span>
+              <span class="stl-col-total-amt" id="stlExpTot">S$ 0.00</span>
+            </div>
+          </div>
+          <div class="stl-col-card cash-col">
+            <div class="stl-col-hdr">💵 Cash Paid Out (selected)</div>
+            <div id="stlCashLines"><div style="font-size:11px;color:var(--muted);padding:6px 0">—</div></div>
+            <div class="stl-col-total">
+              <span class="stl-col-total-label">TOTAL</span>
+              <span class="stl-col-total-amt" id="stlCashTot">S$ 0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full ledger -->
+        <div class="stl-ledger">
+          <div class="stl-ledger-hdr">
+            Full Transaction Ledger
+            <span id="stlLedgerCount"></span>
+          </div>
+          <div id="stlLedger">
+            <div style="text-align:center;color:var(--muted);padding:30px;font-size:13px">No data yet.</div>
+          </div>
+        </div>
+
+      </div><!-- /stl-result -->
+    </div><!-- /stl-wrap -->
+  </div><!-- /page-settle -->
+
+</div><!-- /main -->
+
+
+
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
@@ -594,8 +817,6 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 // ═══════════════════════════════════════════════
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
-
-
 
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let session = null;
@@ -1471,6 +1692,9 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     if(btn.dataset.tab==='cash')      loadCash();
     if(btn.dataset.tab==='vehicles')  loadVehicleList();
     if(btn.dataset.tab==='report')    initReportTab();
+  //  if(btn.dataset.tab==='settle')    { stlPopulateVehicles(); stlOnVehicleChange(); }
+  if(btn.dataset.tab==='settle') { initSettleTab(); stlOnVehicleChange(); }
+
   });
 });
 
@@ -1706,6 +1930,168 @@ function buildXlsx(vehicle, month, year, monthLabel, rows,
 
   const fileName = `Report_${vehicle}_${MONTHS[month]}_${year}.xlsx`;
   XLSX.writeFile(wb, fileName);
+}
+
+// ═══════════════════════════════════════════════
+//  SETTLE DRIVER TAB
+// ═══════════════════════════════════════════════
+const STL_EXP_TYPES  = ['Toll','Parking','Fuel','Vehicle FC/Registration','Medical','CASH CARD','RENT','SALARY','Other'];
+const STL_CASH_TYPES = ['Petty Cash','Cash Order','Advance Salary','Other'];
+
+const stlExpSel  = new Set(STL_EXP_TYPES);
+const stlCashSel = new Set(STL_CASH_TYPES);
+let _stlExpHints  = {};
+let _stlCashHints = {};
+
+function initSettleTab() {
+  const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
+  const mEl=document.getElementById('stlMonth');
+  const yEl=document.getElementById('stlYear');
+  if(mEl) mEl.innerHTML=MONTHS.map((mo,i)=>`<option value="${i}"${i===m?' selected':''}>${mo}</option>`).join('');
+  if(yEl) yEl.innerHTML=[2024,2025,2026].map(yr=>`<option value="${yr}"${yr===y?' selected':''}>${yr}</option>`).join('');
+  stlPopulateVehicles();
+  stlBuildGrid('stlExpGrid', STL_EXP_TYPES, stlExpSel, false);
+  stlBuildGrid('stlCashGrid', STL_CASH_TYPES, stlCashSel, true);
+}
+
+function stlPopulateVehicles() {
+  const el=document.getElementById('stlVehicle');
+  if(!el) return;
+  const cur=el.value;
+  el.innerHTML='<option value="">Select vehicle...</option>';
+  VEHICLES.forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
+  if(cur) el.value=cur;
+}
+
+function stlBuildGrid(containerId, types, selectedSet, isCash) {
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML=types.map(t=>{
+    const checked=selectedSet.has(t);
+    const hintId=`stlhint-${isCash?'cash':'exp'}-${t.replace(/\W/g,'_')}`;
+    return `<div class="stl-chk-item${checked?' is-checked':''}${isCash?' is-cash':''}" onclick="stlToggle(this,'${t}',${isCash})">
+      <div class="stl-chk-box">${checked?'✓':''}</div>
+      <span class="stl-chk-name">${t}</span>
+      <span class="stl-chk-hint" id="${hintId}">—</span>
+    </div>`;
+  }).join('');
+}
+
+function stlToggle(el, type, isCash) {
+  const set=isCash?stlCashSel:stlExpSel;
+  const box=el.querySelector('.stl-chk-box');
+  if(set.has(type)){ set.delete(type); el.classList.remove('is-checked'); box.textContent=''; }
+  else { set.add(type); el.classList.add('is-checked'); box.textContent='✓'; }
+}
+
+async function stlOnVehicleChange() {
+  const vehicle=document.getElementById('stlVehicle').value;
+  const month=parseInt(document.getElementById('stlMonth').value);
+  const year=parseInt(document.getElementById('stlYear').value);
+  if(!vehicle) return;
+  try {
+    const [expenses,cashRows]=await Promise.all([getRows('expenses',vehicle,month,year),getCashRows(month,year,vehicle)]);
+    _stlExpHints={};
+    expenses.forEach(e=>_stlExpHints[e.expense_type]=(_stlExpHints[e.expense_type]||0)+Number(e.amount));
+    _stlCashHints={};
+    cashRows.forEach(c=>_stlCashHints[c.cash_type]=(_stlCashHints[c.cash_type]||0)+Number(c.amount));
+    STL_EXP_TYPES.forEach(t=>{ const el=document.getElementById(`stlhint-exp-${t.replace(/\W/g,'_')}`); if(el) el.textContent=_stlExpHints[t]?fmt(_stlExpHints[t]):'—'; });
+    STL_CASH_TYPES.forEach(t=>{ const el=document.getElementById(`stlhint-cash-${t.replace(/\W/g,'_')}`); if(el) el.textContent=_stlCashHints[t]?fmt(_stlCashHints[t]):'—'; });
+  } catch(e){ /* silent */ }
+}
+
+async function runSettlement() {
+  const vehicle=document.getElementById('stlVehicle').value;
+  const month=parseInt(document.getElementById('stlMonth').value);
+  const year=parseInt(document.getElementById('stlYear').value);
+  if(!vehicle){ toast('stlToast','Please select a vehicle.',false); return; }
+  const btn=document.getElementById('stlRunBtn');
+  btn.disabled=true; btn.textContent='Calculating...';
+  try {
+    const [expenses,cashRows]=await Promise.all([getRows('expenses',vehicle,month,year),getCashRows(month,year,vehicle)]);
+
+    const selExp=expenses.filter(e=>stlExpSel.has(e.expense_type));
+    const selCash=cashRows.filter(c=>stlCashSel.has(c.cash_type));
+    const totalExp=selExp.reduce((s,e)=>s+Number(e.amount),0);
+    const totalCash=selCash.reduce((s,c)=>s+Number(c.amount),0);
+
+    // diff = Cash Out − Expenses
+    // +ve → driver holds our cash → deduct from salary
+    // −ve → driver out of pocket → pay extra with salary
+    const diff=totalCash-totalExp;
+
+    // Equation bar
+    document.getElementById('eqCash').textContent=fmt(totalCash);
+    document.getElementById('eqExp').textContent=fmt(totalExp);
+    document.getElementById('eqResult').textContent=(diff>=0?'':'-')+fmt(Math.abs(diff));
+    const eqChip=document.getElementById('eqResultChip');
+    eqChip.style.background=diff>0?'#ef444418':diff<0?'#22c55e15':'var(--surface)';
+    eqChip.style.borderColor=diff>0?'#ef444444':diff<0?'#22c55e44':'var(--border)';
+    document.getElementById('eqResult').style.color=diff>0?'var(--red)':diff<0?'var(--green)':'var(--muted)';
+
+    // Verdict card
+    const vc=document.getElementById('stlVerdict');
+    const vIcon=document.getElementById('stlVIcon');
+    const vTag=document.getElementById('stlVTag');
+    const vAmt=document.getElementById('stlVAmt');
+    const vAct=document.getElementById('stlVAction');
+    const vSub=document.getElementById('stlVSub');
+    vc.className='stl-verdict '+(diff>0?'pos':diff<0?'neg':'zero');
+    vAmt.textContent=fmt(Math.abs(diff));
+    if(diff>0){
+      vIcon.textContent='⬇️'; vTag.textContent='DEDUCT FROM SALARY';
+      vAct.textContent=`Deduct ${fmt(diff)} from salary`;
+      vSub.textContent=`Cash paid out (${fmt(totalCash)}) exceeded expenses (${fmt(totalExp)}). Driver holds ${fmt(diff)} of our cash.`;
+    } else if(diff<0){
+      vIcon.textContent='⬆️'; vTag.textContent='PAY EXTRA WITH SALARY';
+      vAct.textContent=`Add ${fmt(Math.abs(diff))} to salary`;
+      vSub.textContent=`Expenses (${fmt(totalExp)}) exceeded cash paid out (${fmt(totalCash)}). Driver spent ${fmt(Math.abs(diff))} of own money.`;
+    } else {
+      vIcon.textContent='✅'; vTag.textContent='BALANCED';
+      vAct.textContent='No adjustment needed';
+      vSub.textContent='Cash paid out exactly matches expenses. Nothing to deduct or add.';
+    }
+
+    // Expense breakdown
+    const expByType={};
+    selExp.forEach(e=>expByType[e.expense_type]=(expByType[e.expense_type]||0)+Number(e.amount));
+    document.getElementById('stlExpLines').innerHTML=Object.keys(expByType).length
+      ?Object.entries(expByType).sort((a,b)=>b[1]-a[1]).map(([t,a])=>`<div class="stl-col-line"><span class="stl-col-line-name">${t}</span><span class="stl-col-line-amt">${fmt(a)}</span></div>`).join('')
+      :'<div style="font-size:11px;color:var(--muted);padding:6px 0">No matching expenses.</div>';
+    document.getElementById('stlExpTot').textContent=fmt(totalExp);
+
+    // Cash breakdown
+    const cashByType={};
+    selCash.forEach(c=>cashByType[c.cash_type]=(cashByType[c.cash_type]||0)+Number(c.amount));
+    document.getElementById('stlCashLines').innerHTML=Object.keys(cashByType).length
+      ?Object.entries(cashByType).sort((a,b)=>b[1]-a[1]).map(([t,a])=>`<div class="stl-col-line"><span class="stl-col-line-name">${t}</span><span class="stl-col-line-amt">${fmt(a)}</span></div>`).join('')
+      :'<div style="font-size:11px;color:var(--muted);padding:6px 0">No matching cash entries.</div>';
+    document.getElementById('stlCashTot').textContent=fmt(totalCash);
+
+    // Full ledger
+    const allItems=[
+      ...selExp.map(e=>({date:e.date,type:'exp',cat:e.expense_type,note:e.note||'',amt:Number(e.amount)})),
+      ...selCash.map(c=>({date:c.date,type:'cash',cat:c.cash_type,note:c.note||'',amt:Number(c.amount)}))
+    ].sort((a,b)=>a.date.localeCompare(b.date));
+    document.getElementById('stlLedgerCount').textContent=allItems.length+' entries';
+    const ledgerEl=document.getElementById('stlLedger');
+    if(!allItems.length){
+      ledgerEl.innerHTML='<div style="text-align:center;color:var(--muted);padding:30px;font-size:13px">No transactions for the selected filters.</div>';
+    } else {
+      ledgerEl.innerHTML=allItems.map(item=>{
+        const d=new Date(item.date+'T00:00:00');
+        const ds=`${String(d.getDate()).padStart(2,'0')} ${d.toLocaleDateString('en-SG',{month:'short'})}`;
+        return `<div class="stl-l-row">
+          <span class="stl-l-date">${ds}</span>
+          <span class="stl-l-badge ${item.type}">${item.cat}</span>
+          <span class="stl-l-note">${item.note||'—'}</span>
+          <span class="stl-l-amt ${item.type}">${item.type==='exp'?'−':'+'}${fmt(item.amt)}</span>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('stlResult').classList.add('on');
+  } catch(e){ toast('stlToast','Error: '+e.message,false); }
+  btn.disabled=false; btn.textContent='Calculate →';
 }
 
 // ══════════════════════════════════════════════
