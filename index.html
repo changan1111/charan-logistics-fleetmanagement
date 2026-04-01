@@ -877,13 +877,13 @@ async function getRows(table, vehicle, month, year) {
   const ym=`${year}-${pad(month+1)}`;
   const last = lastDay(year, month);
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.vehicle===vehicle&&e.date.startsWith(ym));
-  return sbGet(`/rest/v1/${table}?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-31&order=date.asc`);
+  return sbGet(`/rest/v1/${table}?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-${pad(last)}&order=date.asc`);
 }
 async function getAllRows(table, month, year) {
   const ym=`${year}-${pad(month+1)}`;
   const last = lastDay(year, month);
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(ym));
-  return sbGet(`/rest/v1/${table}?date=gte.${ym}-01&date=lte.${ym}-31`);
+  return sbGet(`/rest/v1/${table}?date=gte.${ym}-01&date=lte.${ym}-${pad(last)}`);
 }
 async function getYear(table, year) {
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(String(year)));
@@ -899,7 +899,7 @@ async function getCashRows(month, year, vehicle='') {
       return matchDate&&matchVeh;
     });
   }
-  let url=`/rest/v1/cash_on_hand?date=gte.${ym}-01&date=lte.${ym}-31&order=date.desc,created_at.desc`;
+  let url = `/rest/v1/cash_on_hand?date=gte.${ym}-01&date=lte.${ym}-${pad(last)}&order=date.desc,created_at.desc`;
   if (vehicle) url+=`&vehicle=eq.${encodeURIComponent(vehicle)}`;
   return sbGet(url);
 }
