@@ -846,6 +846,12 @@ async function sbPost(path, body) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+
+// Replace this helper at the top of your script section
+function lastDay(year, month) {
+  // month is 0-indexed here, so pass month+1 to get last day
+  return new Date(year, month + 1, 0).getDate();
+}
 async function sbPatch(path, body) {
   const r = await fetch(SB_URL + path, {
     method:'PATCH',
@@ -869,11 +875,13 @@ async function insertRow(table, row) {
 }
 async function getRows(table, vehicle, month, year) {
   const ym=`${year}-${pad(month+1)}`;
+  const last = lastDay(year, month);
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.vehicle===vehicle&&e.date.startsWith(ym));
   return sbGet(`/rest/v1/${table}?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-31&order=date.asc`);
 }
 async function getAllRows(table, month, year) {
   const ym=`${year}-${pad(month+1)}`;
+  const last = lastDay(year, month);
   if (DEMO_MODE) return (table==='earnings'?demoE:demoX).filter(e=>e.date.startsWith(ym));
   return sbGet(`/rest/v1/${table}?date=gte.${ym}-01&date=lte.${ym}-31`);
 }
@@ -883,6 +891,7 @@ async function getYear(table, year) {
 }
 async function getCashRows(month, year, vehicle='') {
   const ym=`${year}-${pad(month+1)}`;
+  const last = lastDay(year, month);
   if (DEMO_MODE) {
     return demoCash.filter(e=>{
       const matchDate=e.date.startsWith(ym);
