@@ -720,6 +720,100 @@
 
       </div><!-- /stl-result -->
     </div><!-- /stl-wrap -->
+
+    <!-- ══ SALARY CALCULATOR ══ -->
+<div style="max-width:600px;margin:32px auto 0">
+  <div style="background:var(--card);border:1px solid #f0a50033;border-radius:14px;overflow:hidden">
+    <div style="padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;font-weight:700">
+      🧮 Salary Calculator
+    </div>
+    <div style="padding:20px">
+
+      <div class="field">
+        <label class="label">Base Salary (S$)</label>
+        <input type="number" class="input mono" id="sc_salary" placeholder="Enter base salary..."
+          oninput="scShowCalcBtn()"
+          style="font-size:22px;font-weight:800;color:var(--text)"/>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:12px">Adjustments</div>
+
+        <!-- Cash row — fetch only, no manual edit -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1f1f2e44;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:12px;color:var(--text);font-weight:600">Cash Adjustment</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="sc_cash_hint">Click Fetch or run settlement above</div>
+          </div>
+          <span class="mono" id="sc_cash_display" style="font-size:15px;font-weight:700;color:var(--muted)">—</span>
+          <button onclick="scFetchCash()" id="sc_cash_fetch_btn"
+            style="padding:6px 12px;background:var(--surface);border:1px solid #06b6d444;border-radius:6px;color:#06b6d4;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            ⟳ Fetch
+          </button>
+        </div>
+
+        <!-- Incentive/Deduction row — fetch + editable -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:12px;color:var(--text);font-weight:600">Incentive / Deduction</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="sc_perf_hint">Fetch or enter manually</div>
+            <div style="display:flex;gap:10px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer">
+                <input type="radio" name="sc_perf_type" value="incentive" id="sc_type_inc"
+                  onchange="document.getElementById('sc_perf_val').style.color='var(--green)'"
+                  checked style="accent-color:var(--green)"/> Incentive
+              </label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);cursor:pointer">
+                <input type="radio" name="sc_perf_type" value="deduction" id="sc_type_ded"
+                  onchange="document.getElementById('sc_perf_val').style.color='var(--red)'"
+                  style="accent-color:var(--red)"/> Deduction
+              </label>
+            </div>
+          </div>
+          <input type="number" id="sc_perf_val" placeholder="0.00" oninput="scShowCalcBtn()"
+            style="width:120px;background:var(--surface);border:1px solid var(--border);border-radius:6px;
+                   color:var(--green);font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;
+                   padding:8px 10px;text-align:right;outline:none;flex-shrink:0"/>
+          <button onclick="scFetchPerf()" id="sc_perf_fetch_btn"
+            style="padding:6px 12px;background:var(--surface);border:1px solid #f0a50044;border-radius:6px;color:var(--accent);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+            ⟳ Fetch
+          </button>
+        </div>
+      </div>
+
+      <button id="sc_calc_btn" onclick="scCalc()"
+        style="width:100%;padding:13px;background:var(--accent);color:#000;border:none;border-radius:10px;
+               font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;
+               margin-bottom:14px;display:none;letter-spacing:.3px">
+        Calculate Final Salary →
+      </button>
+
+      <div id="sc_breakdown" style="display:none">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1f1f2e44;font-size:12px">
+            <span style="color:var(--muted)">Base salary</span>
+            <span class="mono" id="sc_r_salary" style="color:var(--text)">S$ —</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1f1f2e44;font-size:12px">
+            <span style="color:var(--muted)" id="sc_r_cash_label">Cash adjustment</span>
+            <span class="mono" id="sc_r_cash">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12px">
+            <span style="color:var(--muted)" id="sc_r_perf_label">Incentive / Deduction</span>
+            <span class="mono" id="sc_r_perf">—</span>
+          </div>
+        </div>
+        <div id="sc_final_box"
+          style="margin-top:12px;padding:18px 20px;border-radius:10px;background:var(--surface);
+                 border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Final Salary to Pay</span>
+          <span class="mono" id="sc_final" style="font-size:28px;font-weight:800;color:var(--muted)">S$ —</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
   </div><!-- /page-settle -->
 
 </div><!-- /main -->
@@ -2113,6 +2207,7 @@ async function runSettlement() {
       }).join('');
     }
     document.getElementById('stlResult').classList.add('on');
+    scInjectSettlement(diff);
   } catch(e){ toast('stlToast','Error: '+e.message,false); }
   btn.disabled=false; btn.textContent='Calculate →';
 }
@@ -2151,6 +2246,153 @@ function initApp(){
     await loadVehiclesFromDB();
     loadDashboard();
   })();
+}
+// ═══════════════════════════════════════════════
+//  SALARY CALCULATOR
+// ═══════════════════════════════════════════════
+var _scData = { cashAdj: 0, cashDir: 'zero' };
+
+function scFmt(n) {
+  return 'S$ ' + Math.abs(n).toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Auto-called by runSettlement() — fills cash row automatically
+function scInjectSettlement(diff) {
+  _scData.cashAdj = Math.abs(diff);
+  _scData.cashDir = diff > 0 ? 'deduct' : diff < 0 ? 'add' : 'zero';
+  const dispEl = document.getElementById('sc_cash_display');
+  const hintEl = document.getElementById('sc_cash_hint');
+  if (!dispEl) return;
+  if (diff > 0) {
+    dispEl.textContent = '− ' + scFmt(diff);
+    dispEl.style.color = 'var(--red)';
+    hintEl.textContent = 'Driver holds ' + scFmt(diff) + ' of our cash → deduct';
+  } else if (diff < 0) {
+    dispEl.textContent = '+ ' + scFmt(Math.abs(diff));
+    dispEl.style.color = 'var(--green)';
+    hintEl.textContent = 'Driver paid ' + scFmt(Math.abs(diff)) + ' out of pocket → add';
+  } else {
+    dispEl.textContent = 'S$ 0.00';
+    dispEl.style.color = 'var(--muted)';
+    hintEl.textContent = 'Balanced — no cash adjustment';
+  }
+  scShowCalcBtn();
+}
+
+// Manual fetch button for cash — uses same vehicle/month as settle panel
+async function scFetchCash() {
+  const vehicle = document.getElementById('stlVehicle').value;
+  const month   = parseInt(document.getElementById('stlMonth').value);
+  const year    = parseInt(document.getElementById('stlYear').value);
+  const hintEl  = document.getElementById('sc_cash_hint');
+  const btn     = document.getElementById('sc_cash_fetch_btn');
+  if (!vehicle) { hintEl.textContent = 'Select a vehicle in Settle Driver first'; return; }
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const [expenses, cashRows] = await Promise.all([
+      getRows('expenses', vehicle, month, year),
+      getCashRows(month, year, vehicle)
+    ]);
+    const selExp  = expenses.filter(e => stlExpSel.has(e.expense_type));
+    const selCash = cashRows.filter(c => stlCashSel.has(c.cash_type));
+    const totalExp  = selExp.reduce((s, e) => s + Number(e.amount), 0);
+    const totalCash = selCash.reduce((s, c) => s + Number(c.amount), 0);
+    scInjectSettlement(totalCash - totalExp);
+  } catch(e) {
+    hintEl.textContent = 'Error: ' + e.message;
+  }
+  btn.textContent = '⟳ Fetch'; btn.disabled = false;
+}
+
+// Fetch incentive/deduction — fills input but keeps it editable
+async function scFetchPerf() {
+  const vehicle = document.getElementById('stlVehicle').value;
+  const month   = parseInt(document.getElementById('stlMonth').value);
+  const year    = parseInt(document.getElementById('stlYear').value);
+  const hintEl  = document.getElementById('sc_perf_hint');
+  const btn     = document.getElementById('sc_perf_fetch_btn');
+  const inp     = document.getElementById('sc_perf_val');
+  if (!vehicle) { hintEl.textContent = 'Select a vehicle in Settle Driver first'; return; }
+  btn.textContent = '...'; btn.disabled = true;
+  try {
+    const allE  = await getRows('earnings', vehicle, month, year);
+    const TARGET = 6500;
+    const te    = allE.reduce((s, e) => s + Number(e.amount), 0);
+    if (te >= TARGET) {
+      const inc = (te - TARGET) * 0.5;
+      inp.value = inc.toFixed(2);
+      inp.style.color = 'var(--green)';
+      document.getElementById('sc_type_inc').checked = true;
+      hintEl.textContent = 'Target met — incentive ' + scFmt(inc) + ' (editable)';
+    } else {
+      const ded = (TARGET - te) * (3000 / TARGET);
+      inp.value = ded.toFixed(2);
+      inp.style.color = 'var(--red)';
+      document.getElementById('sc_type_ded').checked = true;
+      hintEl.textContent = 'Below target — deduction ' + scFmt(ded) + ' (editable)';
+    }
+    scShowCalcBtn();
+  } catch(e) {
+    hintEl.textContent = 'Error: ' + e.message;
+  }
+  btn.textContent = '⟳ Fetch'; btn.disabled = false;
+}
+
+function scShowCalcBtn() {
+  const sal = parseFloat(document.getElementById('sc_salary').value) || 0;
+  const btn = document.getElementById('sc_calc_btn');
+  if (!btn) return;
+  btn.style.display = sal > 0 ? 'block' : 'none';
+  document.getElementById('sc_breakdown').style.display = 'none';
+}
+
+function scCalc() {
+  const sal     = parseFloat(document.getElementById('sc_salary').value) || 0;
+  if (!sal) return;
+  const cashAdj = _scData.cashAdj || 0;
+  const dir     = _scData.cashDir  || 'zero';
+  const perfVal = parseFloat(document.getElementById('sc_perf_val').value) || 0;
+  const isInc   = document.getElementById('sc_type_inc').checked;
+  const inc     = isInc ? perfVal : 0;
+  const ded     = !isInc ? perfVal : 0;
+  const cashEffect = dir === 'deduct' ? -cashAdj : dir === 'add' ? +cashAdj : 0;
+  const final   = sal + cashEffect + inc - ded;
+
+  document.getElementById('sc_r_salary').textContent = scFmt(sal);
+
+  const cashRow = document.getElementById('sc_r_cash');
+  const cashLbl = document.getElementById('sc_r_cash_label');
+  if (dir === 'deduct' && cashAdj > 0) {
+    cashRow.textContent = '− ' + scFmt(cashAdj);
+    cashRow.style.color = 'var(--red)';
+    cashLbl.textContent = 'Cash deduction (driver holds our cash)';
+  } else if (dir === 'add' && cashAdj > 0) {
+    cashRow.textContent = '+ ' + scFmt(cashAdj);
+    cashRow.style.color = 'var(--green)';
+    cashLbl.textContent = 'Driver reimbursement (paid out of pocket)';
+  } else {
+    cashRow.textContent = 'S$ 0.00';
+    cashRow.style.color = 'var(--muted)';
+    cashLbl.textContent = 'Cash adjustment';
+  }
+
+  const perfRow = document.getElementById('sc_r_perf');
+  const perfLbl = document.getElementById('sc_r_perf_label');
+  if (perfVal > 0) {
+    perfRow.textContent = (isInc ? '+ ' : '− ') + scFmt(perfVal);
+    perfRow.style.color = isInc ? 'var(--green)' : 'var(--red)';
+    perfLbl.textContent = isInc ? 'Incentive (target met)' : 'Deduction (below target)';
+  } else {
+    perfRow.textContent = 'S$ 0.00';
+    perfRow.style.color = 'var(--muted)';
+    perfLbl.textContent = 'No incentive / deduction';
+  }
+
+  document.getElementById('sc_final').textContent = scFmt(final);
+  document.getElementById('sc_final').style.color = final >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('sc_final_box').style.background  = final >= 0 ? 'var(--green-dim)' : 'var(--red-dim)';
+  document.getElementById('sc_final_box').style.borderColor = final >= 0 ? '#22c55e44' : '#ef444433';
+  document.getElementById('sc_breakdown').style.display = 'block';
 }
 </script>
 </body>
