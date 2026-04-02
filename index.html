@@ -819,6 +819,8 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
 
+
+
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let session = null;
 
@@ -1624,6 +1626,8 @@ async function loadCash() {
     const petty    = rows.filter(r=>r.cash_type==='Petty Cash').reduce((s,r)=>s+Number(r.amount),0);
     const orders   = rows.filter(r=>r.cash_type==='Cash Order').reduce((s,r)=>s+Number(r.amount),0);
     const advances = rows.filter(r=>r.cash_type==='Advance Salary').reduce((s,r)=>s+Number(r.amount),0);
+    const lalamove    = rows.filter(r=>r.cash_type==='LALAMOVE').reduce((s,r)=>s+Number(r.amount),0);
+    const personalCash = rows.filter(r =>r.cash_type === 'Other' &&r.note &&r.note.toLowerCase() === 'personal cash').reduce((s, r) => s + Number(r.amount), 0);
 
     stripEl.innerHTML=`
       <div class="cash-summary-cell">
@@ -1641,7 +1645,16 @@ async function loadCash() {
       <div class="cash-summary-cell">
         <div class="csc-label">Advances</div>
         <div class="csc-val" style="color:var(--green)">${fmt(advances)}</div>
-      </div>`;
+      </div>
+            <div class="cash-summary-cell">
+        <div class="csc-label">LALAMOVE</div>
+        <div class="csc-val" style="color:var(--green)">${fmt(lalamove)}</div>
+      </div>
+      <div class="cash-summary-cell">
+        <div class="csc-label">Personal Cash</div>
+        <div class="csc-val" style="color:var(--amber)">${fmt(personalCash)}</div>
+      </div>
+    `;
 
     if (deductEl) deductEl.textContent=fmt(total);
 
