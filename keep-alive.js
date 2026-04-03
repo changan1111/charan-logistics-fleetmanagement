@@ -9,7 +9,7 @@ const fs = require('fs');
   try {
     // ── Login ──
     console.log('1. Going to login page...');
-    await page.goto(process.env.APP_URL, { waitUntil: 'networkidle' });
+    await page.goto("https://changan1111.github.io/charan-logistics-fleetmanagement/login.html", { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'screenshots/01-login-page.png' });
     const newString = page.url();
   console.log("Current Page URL is: "+newString); 
