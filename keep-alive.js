@@ -9,34 +9,50 @@ const fs = require('fs');
   try {
     // ── Login ──
     console.log('1. Going to login page...');
-    await page.goto(process.env.APP_URL + '/login.html', { waitUntil: 'networkidle' });
+    await page.goto(process.env.APP_URL, { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'screenshots/01-login-page.png' });
 
-    await page.fill('input[type="email"]', process.env.APP_EMAIL);
-    await page.fill('input[type="password"]', process.env.APP_PASS);
+    await page.getByRole('textbox', { name: 'EMAIL' }).fill(process.env.APP_EMAIL);
+    await page.getByRole('textbox', { name: 'PASSWORD' }).fill(process.env.APP_PASSWORD);
     await page.screenshot({ path: 'screenshots/02-login-filled.png' });
 
-    await page.click('button[type="submit"]');
+    await page.getByRole('button',
+        { name: 'SIGN IN' } 
+    ).click();
     await page.waitForTimeout(4000);
     await page.screenshot({ path: 'screenshots/03-after-login.png' });
     console.log('✓ Logged in');
 
     // ── Dashboard (auto-loads on login) ──
+    await page.getByRole('button', { name: 'Dashboard' }).click();
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'screenshots/04-dashboard.png' });
     console.log('✓ Dashboard loaded');
 
     // ── History tab ──
-    await page.click('[data-tab="history"]');
+    await page.getByRole('button', { name: 'History' }).click();
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'screenshots/05-history.png' });
     console.log('✓ History tab loaded');
+    await page.pause();
+    await page.selectOption('#histVehicle', { index: 1 }); // picks first vehicle
+    await page.waitForTimeout(3000);
+    await page.screenshot({ path: 'screenshots/08-reports.png' });
+    console.log('✓ Reports tab loaded');
+
 
     // ── Vehicles tab ──
-    await page.click('[data-tab="vehicles"]');
+    await page.getByRole('button', { name: 'Vehicles' }).click();
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'screenshots/06-vehicles.png' });
     console.log('✓ Vehicles tab loaded');
+
+    await page.getByRole('button', { name: 'Charts' }).click();
+    await page.waitForTimeout(3000);
+    await page.screenshot({ path: 'screenshots/07-charts.png' });
+    console.log('✓ Charts tab loaded');
+
+
 
     console.log('✅ All done — Supabase is alive!');
 
