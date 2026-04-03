@@ -11,7 +11,8 @@ const fs = require('fs');
     console.log('1. Going to login page...');
     await page.goto(process.env.APP_URL, { waitUntil: 'networkidle' });
     await page.screenshot({ path: 'screenshots/01-login-page.png' });
-
+    const newString = page.url();
+  console.log("Current Page URL is: "+newString); 
     await page.getByRole('textbox', { name: 'EMAIL' }).fill(process.env.APP_EMAIL);
     await page.getByRole('textbox', { name: 'PASSWORD' }).fill(process.env.APP_PASSWORD);
     await page.screenshot({ path: 'screenshots/02-login-filled.png' });
