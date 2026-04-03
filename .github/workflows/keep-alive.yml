@@ -1,0 +1,29 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    - cron: '30 0 * * *'  # 6:00 AM SGT (UTC+8 = 00:30 UTC)
+  workflow_dispatch:       # manual trigger anytime
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install chromium
+
+      - name: Login and trigger DB queries
+        env:
+          APP_URL:   ${{ secrets.APP_URL }}
+          APP_EMAIL: ${{ secrets.APP_EMAIL }}
+          APP_PASS:  ${{ secrets.APP_PASS }}
+        run: node keep-alive.js
