@@ -27,3 +27,9 @@ jobs:
           APP_EMAIL: ${{ secrets.APP_EMAIL }}
           APP_PASSWORD:  ${{ secrets.APP_PASSWORD }}
         run: node keep-alive.js
+
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
