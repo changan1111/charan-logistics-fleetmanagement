@@ -25,5 +25,5 @@ jobs:
         env:
           APP_URL:   ${{ secrets.APP_URL }}
           APP_EMAIL: ${{ secrets.APP_EMAIL }}
-          APP_PASS:  ${{ secrets.APP_PASS }}
+          APP_PASS:  ${{ secrets.APP_PASSWORD }}
         run: node keep-alive.js
