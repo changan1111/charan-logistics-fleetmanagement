@@ -3,7 +3,7 @@ name: Supabase Keep Alive
 on:
   schedule:
     # 4:15 AM UTC = 9:45 AM IST
-    - cron: '15 4 * * *'
+    - cron: '45 4 * * *'
   workflow_dispatch:
 
 jobs:
