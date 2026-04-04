@@ -2,8 +2,9 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    - cron: '30 0 * * *'  # 6:00 AM SGT (UTC+8 = 00:30 UTC)
-  workflow_dispatch:       # manual trigger anytime
+    # 4:15 AM UTC = 9:45 AM IST
+    - cron: '15 4 * * *'
+  workflow_dispatch:
 
 jobs:
   keep-alive:
@@ -23,12 +24,13 @@ jobs:
 
       - name: Login and trigger DB queries
         env:
-          APP_URL:   ${{ secrets.APP_URL }}
+          APP_URL: ${{ secrets.APP_URL }}
           APP_EMAIL: ${{ secrets.APP_EMAIL }}
-          APP_PASSWORD:  ${{ secrets.APP_PASSWORD }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
         run: node keep-alive.js
 
       - name: Upload Screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
