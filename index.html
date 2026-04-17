@@ -953,7 +953,7 @@ async function getTripRows(vehicle, month, year) {
   const ym   = `${year}-${pad(month + 1)}`;
   const last = lastDay(year, month);
   return sbGet(
-    `/rest/v1/tripdetails?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-${pad(last)}&order=date.asc`
+    `/rest/v1/tripdetails?vehicle=eq.${encodeURIComponent(vehicle)}&date=gte.${ym}-01&date=lte.${ym}-${pad(last)}&order=date.desc`
   );
 }
 async function insertCash(row) {
