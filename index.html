@@ -875,6 +875,7 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
 
+
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
 let session = null;
 let DEMO_MODE  = false;
@@ -1591,31 +1592,46 @@ async function loadTrips() {
     const totExp   = expenses.reduce((s,e)=>s+Number(e.amount),0);
     const avgKmPerTrip = totTrips > 0 ? (totKm/totTrips).toFixed(1) : '—';
 
-    // ── Stat summary ──
-    let html = `
-    <div class="stat-row">
-      <div class="stat-card" style="border-color:#06b6d433">
-        <div class="slabel">Total Trips</div>
-        <div class="sval" style="color:#06b6d4">${totTrips || '—'}</div>
-      </div>
-      <div class="stat-card" style="border-color:#06b6d433">
-        <div class="slabel">Total KM</div>
-        <div class="sval" style="color:#06b6d4">${totKm ? totKm.toFixed(1)+' km' : '—'}</div>
-      </div>
-      <div class="stat-card" style="border-color:#a78bfa33">
-        <div class="slabel">Avg KM / Trip</div>
-        <div class="sval" style="color:#a78bfa">${avgKmPerTrip}</div>
-      </div>
-      <div class="stat-card" style="border-color:#22c55e33">
-        <div class="slabel">Earnings</div>
-        <div class="sval" style="color:var(--green)">${fmt(totEarn)}</div>
-      </div>
-      <div class="stat-card" style="border-color:#ef444433">
-        <div class="slabel">Expenses</div>
-        <div class="sval" style="color:var(--red)">${fmt(totExp)}</div>
-      </div>
-    </div>`;
+    // ── Fuel stats ──
+//const fuelExp   = expenses.filter(e => e.expense_type === 'Fuel');
+const fuelExp = expenses.filter(e => e.expense_type === 'Fuel' || e.expense_type === 'CASH CARD');
+const totFuel   = fuelExp.reduce((s, e) => s + Number(e.amount), 0);
+const costPerKm = totKm > 0 && totFuel > 0 ? (totFuel / totKm).toFixed(3) : null;
+const earnPerKm = totKm > 0 && totEarn > 0 ? (totEarn / totKm).toFixed(2) : null;
 
+let html = `
+<div class="stat-row">
+  <div class="stat-card" style="border-color:#06b6d433">
+    <div class="slabel">Total Trips</div>
+    <div class="sval" style="color:#06b6d4">${totTrips || '—'}</div>
+  </div>
+  <div class="stat-card" style="border-color:#06b6d433">
+    <div class="slabel">Total KM</div>
+    <div class="sval" style="color:#06b6d4">${totKm ? totKm.toFixed(1)+' km' : '—'}</div>
+  </div>
+  <div class="stat-card" style="border-color:#a78bfa33">
+    <div class="slabel">Avg KM / Trip</div>
+    <div class="sval" style="color:#a78bfa">${avgKmPerTrip}</div>
+  </div>
+  <div class="stat-card" style="border-color:#ef444433">
+    <div class="slabel">Fuel Cost</div>
+    <div class="sval" style="color:var(--red)">${totFuel ? fmt(totFuel) : '—'}</div>
+    <div class="ssub">${fuelExp.length} entr${fuelExp.length===1?'y':'ies'}</div>
+  </div>
+  <div class="stat-card" style="border-color:#ef444466">
+    <div class="slabel">Cost / KM</div>
+    <div class="sval" style="color:var(--red)">${costPerKm ? 'S$ '+costPerKm : '—'}</div>
+    <div class="ssub">${earnPerKm ? `S$ ${earnPerKm} earned/km` : 'log KM + fuel to see'}</div>
+  </div>
+  <div class="stat-card" style="border-color:#22c55e33">
+    <div class="slabel">Earnings</div>
+    <div class="sval" style="color:var(--green)">${fmt(totEarn)}</div>
+  </div>
+  <div class="stat-card" style="border-color:#ef444433">
+    <div class="slabel">Total Expenses</div>
+    <div class="sval" style="color:var(--red)">${fmt(totExp)}</div>
+  </div>
+</div>`;
     if (!trips.length) {
       html += `<div class="section-card" style="text-align:center;color:var(--muted);padding:40px">
         <div style="font-size:32px;margin-bottom:10px">🗺️</div>
