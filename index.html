@@ -1585,7 +1585,7 @@ async function loadTrips() {
       getRows('expenses', vehicle, month, year)
     ]);
 
-    const totTrips = trips.reduce((s,t)=>s+Number(t.trips||0),0);
+    const totTrips = trips.reduce((s,t)=>s+Number(t.trip||0),0);
     const totKm    = trips.reduce((s,t)=>s+Number(t.km||0),0);
     const totEarn  = earnings.reduce((s,e)=>s+Number(e.amount),0);
     const totExp   = expenses.reduce((s,e)=>s+Number(e.amount),0);
@@ -1645,11 +1645,11 @@ async function loadTrips() {
           </tr></thead>
           <tbody>
             ${trips.map(t => {
-              const kpt = Number(t.trips)>0 ? (Number(t.km)/Number(t.trips)).toFixed(1) : '—';
+              const kpt = Number(t.trip)>0 ? (Number(t.km)/Number(t.trip)).toFixed(1) : '—';
               const dl  = new Date(t.date+'T00:00:00').toLocaleDateString('en-SG',{weekday:'short',day:'2-digit',month:'short'});
               return `<tr>
                 <td style="color:var(--accent);font-weight:700;white-space:nowrap">${dl}</td>
-                <td class="mono" style="color:#06b6d4;text-align:right;font-weight:700">${t.trips || '—'}</td>
+                <td class="mono" style="color:#06b6d4;text-align:right;font-weight:700">${t.trip || '—'}</td>
                 <td class="mono" style="color:#06b6d4;text-align:right">${Number(t.km) ? Number(t.km).toFixed(1)+' km' : '—'}</td>
                 <td class="mono" style="color:#a78bfa;text-align:right">${kpt}</td>
                 <td style="color:var(--muted);font-size:11px">${t.note||'—'}</td>
