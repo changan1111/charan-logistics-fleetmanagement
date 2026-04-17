@@ -1593,8 +1593,8 @@ async function loadTrips() {
     const avgKmPerTrip = totTrips > 0 ? (totKm/totTrips).toFixed(1) : '—';
 
     // ── Fuel stats ──
-//const fuelExp   = expenses.filter(e => e.expense_type === 'Fuel');
-const fuelExp = expenses.filter(e => e.expense_type === 'Fuel' || e.expense_type === 'CASH CARD');
+const fuelExp   = expenses.filter(e => e.expense_type === 'Fuel');
+//const fuelExp = expenses.filter(e => e.expense_type === 'Fuel' || e.expense_type === 'CASH CARD');
 const totFuel   = fuelExp.reduce((s, e) => s + Number(e.amount), 0);
 const costPerKm = totKm > 0 && totFuel > 0 ? (totFuel / totKm).toFixed(3) : null;
 const earnPerKm = totKm > 0 && totEarn > 0 ? (totEarn / totKm).toFixed(2) : null;
