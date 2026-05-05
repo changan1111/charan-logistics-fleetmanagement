@@ -386,6 +386,8 @@ body.day {
         <select class="select" id="addExpType">
           <option>Toll</option><option>Parking</option><option>Fuel</option>
           <option>Vehicle FC/Registration</option><option>Medical</option><option>Other</option>
+          <option>Vehicle Expenses</option>
+          <option>Helper Paid</option>
           <option>CASH CARD</option>
           <option>RENT</option>
           <option>SALARY</option>
@@ -1793,7 +1795,7 @@ function buildXlsx(vehicle,month,year,monthLabel,rows,totalRev,totalExp,totalCas
 // ═══════════════════════════════════════════════
 //  SETTLE DRIVER
 // ═══════════════════════════════════════════════
-const STL_EXP_TYPES  = ['Toll','Parking','Fuel','Medical','CASH CARD','Other'];
+const STL_EXP_TYPES  = ['Toll','Parking','Fuel','Medical','CASH CARD','Other','Vehicle Expenses','Helper Paid'];
 const STL_CASH_TYPES = ['Petty Cash','Cash Order','Advance Salary','Other','LALAMOVE','Personal cash'];
 const stlExpSel  = new Set(STL_EXP_TYPES);
 const stlCashSel = new Set(STL_CASH_TYPES);
