@@ -27,7 +27,6 @@
   ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
   .mono{font-family:'JetBrains Mono',monospace}
 
-  /* Add this block: */
 body.day {
   --bg:#f5f5f7; --surface:#ffffff; --card:#ffffff; --border:#e0e0e8;
   --muted:#8888a0; --text:#1a1a2e;
@@ -112,6 +111,13 @@ body.day {
   .client-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.3px}
   .exp-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--red-dim);color:var(--red);border:1px solid #ef444433}
 
+  /* ── Edit / Delete row action buttons ── */
+  .row-actions{display:flex;gap:4px;flex-shrink:0;margin-left:4px;align-items:flex-start;padding-top:2px}
+  .btn-edit-row{padding:3px 8px;border-radius:5px;border:1px solid #f0a50044;background:var(--accent-dim);color:var(--accent);font-size:10px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s;white-space:nowrap}
+  .btn-edit-row:hover{background:#f0a50030}
+  .btn-del-row{padding:3px 8px;border-radius:5px;border:1px solid #ef444433;background:transparent;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s;white-space:nowrap}
+  .btn-del-row:hover{background:var(--red-dim)}
+
   /* ── Dashboard table ── */
   .dtable-wrap{overflow-x:auto}
   table{width:100%;border-collapse:collapse}
@@ -153,6 +159,17 @@ body.day {
   .cfg-btn:hover{transform:scale(1.1)}
   .no-data{text-align:center;color:var(--muted);padding:50px 0;font-size:13px}
   .setup-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:28px}
+
+  /* ── Edit Modal specific ── */
+  #editModal .modal{border-color:#f0a50033;max-width:440px}
+  #editModal .modal-title{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+  #cashEditModal .modal{border-color:#06b6d433;max-width:440px}
+  #cashEditModal .modal-title{font-size:14px;font-weight:800;color:#06b6d4;letter-spacing:.5px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+  .edit-modal-actions{display:flex;gap:10px;margin-top:20px}
+  .btn-modal-save{flex:1;padding:12px;background:var(--accent);color:#000;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .15s}
+  .btn-modal-save:disabled{opacity:.5}
+  .btn-modal-save.cash-save{background:#06b6d4}
+  .btn-modal-cancel{padding:12px 18px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 
   /* ── Cash on Hand tab ── */
   .cash-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
@@ -318,10 +335,8 @@ body.day {
   .btn-trip-save:active{transform:scale(.98)}
   .btn-trip-save:disabled{opacity:.5}
 
-  /* Trip stat inline pill in day header */
   .trip-inline-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:#06b6d412;color:#06b6d4;border:1px solid #06b6d433;white-space:nowrap}
 
-  /* Trip log table row delete btn */
   .trip-del-btn{padding:3px 8px;border-radius:4px;border:1px solid #ef444433;background:transparent;color:var(--red);font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;transition:background .15s}
   .trip-del-btn:hover{background:var(--red-dim)}
 </style>
@@ -337,7 +352,7 @@ body.day {
         <div class="sub">Fleet Management</div>
         <h1>Vehicle P&amp;L Tracker</h1>
       </div>
-      <button onclick="toggleMode()" id="modeBtn" 
+      <button onclick="toggleMode()" id="modeBtn"
   style="padding:5px 18px;background:transparent;border:1px solid var(--border);
          border-radius:6px;color:var(--muted);font-family:'Syne',sans-serif;
          font-size:18px;font-weight:600;cursor:pointer;transition:all .2s">
@@ -762,7 +777,6 @@ body.day {
 
   <!-- ══ TRIPS ══ -->
   <div class="page" id="page-trips">
-    <!-- Filter row -->
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
       <select class="select" id="tripsVehicle" style="flex:2;min-width:150px" onchange="loadTrips()">
         <option value="">Select Vehicle</option>
@@ -772,11 +786,9 @@ body.day {
     </div>
 
     <div class="trips-layout">
-      <!-- LEFT: Entry Form -->
       <div>
         <div class="trips-form-card">
           <div class="trips-form-title">Log Trip / KM</div>
-
           <div class="field">
             <label class="label">Vehicle</label>
             <select class="select" id="tripEntryVehicle">
@@ -803,10 +815,8 @@ body.day {
             <label class="label">Notes (optional)</label>
             <input type="text" class="input" id="tripEntryNote" placeholder="e.g. KAIRA route, highway..."/>
           </div>
-
           <button class="btn-trip-save" id="tripSaveBtn" onclick="saveTripEntry()">Save Trip Log</button>
           <div class="toast" id="tripToast"></div>
-
           <div style="margin-top:14px;background:var(--bg);border:1px solid #06b6d422;border-radius:9px;padding:12px 14px;font-size:11px;color:var(--muted);line-height:1.85">
             <b style="color:#06b6d4">ℹ️ How it works</b><br>
             Log trips and KM per day per vehicle.<br>
@@ -814,8 +824,6 @@ body.day {
           </div>
         </div>
       </div>
-
-      <!-- RIGHT: Trip Log Table -->
       <div id="tripsContent">
         <div class="no-data">← Select a vehicle to view trip log</div>
       </div>
@@ -823,6 +831,76 @@ body.day {
   </div>
 
 </div><!-- /main -->
+
+<!-- ══ EDIT MODAL — Earnings & Expenses ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title" id="editModalTitle">✏️ Edit Entry</div>
+    <input type="hidden" id="editId"/>
+    <input type="hidden" id="editTable"/>
+    <div class="field">
+      <label class="label">Date</label>
+      <input type="date" class="input" id="editDate"/>
+    </div>
+    <div class="field">
+      <label class="label">Amount (S$)</label>
+      <input type="number" class="input mono" id="editAmount" placeholder="0.00" style="font-size:20px;font-weight:700"/>
+    </div>
+    <div class="field" id="editExpTypeField" style="display:none">
+      <label class="label">Expense Category</label>
+      <select class="select" id="editExpType">
+        <option>Toll</option><option>Parking</option><option>Fuel</option>
+        <option>Vehicle FC/Registration</option><option>Medical</option><option>Other</option>
+        <option>Vehicle Expenses</option><option>Helper Paid</option>
+        <option>CASH CARD</option><option>RENT</option><option>SALARY</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="label">Notes</label>
+      <textarea class="textarea" id="editNote" rows="3"></textarea>
+    </div>
+    <div class="edit-modal-actions">
+      <button class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-modal-save" id="editSaveBtn" onclick="saveEditModal()">Save Changes</button>
+    </div>
+    <div class="toast" id="editToast" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ══ EDIT MODAL — Cash on Hand ══ -->
+<div class="modal-overlay" id="cashEditModal">
+  <div class="modal">
+    <div class="modal-title">💵 Edit Cash Entry</div>
+    <input type="hidden" id="cashEditId"/>
+    <div class="field">
+      <label class="label">Cash Type</label>
+      <select class="select" id="cashEditType">
+        <option value="Petty Cash">Petty Cash</option>
+        <option value="Cash Order">Cash Order</option>
+        <option value="Advance Salary">Advance Salary</option>
+        <option value="LALAMOVE">LALAMOVE</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="label">Date</label>
+      <input type="date" class="input" id="cashEditDate"/>
+    </div>
+    <div class="field">
+      <label class="label">Amount (S$)</label>
+      <input type="number" class="input mono" id="cashEditAmount" placeholder="0.00" style="font-size:20px;font-weight:700;color:#06b6d4"/>
+    </div>
+    <div class="field">
+      <label class="label">Notes / Purpose</label>
+      <textarea class="textarea" id="cashEditNote" rows="3"></textarea>
+    </div>
+    <div class="edit-modal-actions">
+      <button class="btn-modal-cancel" onclick="closeCashEditModal()">Cancel</button>
+      <button class="btn-modal-save cash-save" id="cashEditSaveBtn" onclick="saveCashEditModal()">Save Changes</button>
+    </div>
+    <div class="toast" id="cashEditToast" style="margin-top:10px"></div>
+  </div>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
@@ -876,6 +954,7 @@ const VCOLS    = ['#22c55e','#f59e0b','#06b6d4','#a78bfa','#f87171','#34d399'];
 // ═══════════════════════════════════════════════
 const SB_URL = "%%SUPABASE_URL%%";
 const SB_KEY = "%%SUPABASE_ANON_KEY%%";
+
 
 
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
@@ -962,8 +1041,6 @@ async function getTripRows(vehicle, month, year) {
 async function insertCash(row) {
   const rows = await sbPost(`/rest/v1/cash_on_hand`, row); return rows[0];
 }
-
-// ── NEW: insert + delete trip rows ──────────────────────────────────────
 async function insertTripRow(row) {
   const rows = await sbPost(`/rest/v1/tripdetails`, row); return rows[0];
 }
@@ -1178,7 +1255,105 @@ async function saveEntry() {
 }
 
 // ═══════════════════════════════════════════════
-//  HISTORY  — shows trip pill only if data exists
+//  EDIT / DELETE — Earnings & Expenses
+// ═══════════════════════════════════════════════
+function openEditModal(table, row) {
+  document.getElementById('editId').value    = row.id;
+  document.getElementById('editTable').value = table;
+  document.getElementById('editDate').value  = row.date;
+  document.getElementById('editAmount').value = row.amount;
+  document.getElementById('editNote').value  = row.note || '';
+
+  const isExp = table === 'expenses';
+  document.getElementById('editModalTitle').textContent = isExp ? '✏️ Edit Expense' : '✏️ Edit Earning';
+  document.getElementById('editAmount').style.color = isExp ? 'var(--red)' : 'var(--green)';
+  const expTypeField = document.getElementById('editExpTypeField');
+  expTypeField.style.display = isExp ? 'block' : 'none';
+  if (isExp && row.expense_type) {
+    document.getElementById('editExpType').value = row.expense_type;
+  }
+
+  document.getElementById('editModal').classList.add('open');
+}
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+async function saveEditModal() {
+  const id    = document.getElementById('editId').value;
+  const table = document.getElementById('editTable').value;
+  const date  = document.getElementById('editDate').value;
+  const amount = parseFloat(document.getElementById('editAmount').value);
+  const note  = document.getElementById('editNote').value.trim();
+  if (!date || !amount) { toast('editToast','Please fill date and amount.',false); return; }
+
+  const btn = document.getElementById('editSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const body = { date, amount, note };
+    if (table === 'expenses') body.expense_type = document.getElementById('editExpType').value;
+    await sbPatch(`/rest/v1/${table}?id=eq.${id}`, body);
+    toast('editToast','Saved!', true);
+    setTimeout(()=>{ closeEditModal(); loadHistory(); }, 900);
+  } catch(e) { toast('editToast','Error: '+e.message, false); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+async function deleteEntryRow(table, id) {
+  if (!confirm('Delete this entry? This cannot be undone.')) return;
+  try {
+    await sbDelete(`/rest/v1/${table}?id=eq.${id}`);
+    loadHistory();
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════
+//  EDIT / DELETE — Cash on Hand
+// ═══════════════════════════════════════════════
+function openCashEditModal(row) {
+  document.getElementById('cashEditId').value     = row.id;
+  document.getElementById('cashEditType').value   = row.cash_type;
+  document.getElementById('cashEditDate').value   = row.date;
+  document.getElementById('cashEditAmount').value = row.amount;
+  document.getElementById('cashEditNote').value   = row.note || '';
+  document.getElementById('cashEditModal').classList.add('open');
+}
+function closeCashEditModal() {
+  document.getElementById('cashEditModal').classList.remove('open');
+}
+async function saveCashEditModal() {
+  const id     = document.getElementById('cashEditId').value;
+  const type   = document.getElementById('cashEditType').value;
+  const date   = document.getElementById('cashEditDate').value;
+  const amount = parseFloat(document.getElementById('cashEditAmount').value);
+  const note   = document.getElementById('cashEditNote').value.trim();
+  if (!date || !amount) { toast('cashEditToast','Please fill date and amount.',false); return; }
+
+  const btn = document.getElementById('cashEditSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    await sbPatch(`/rest/v1/cash_on_hand?id=eq.${id}`, { cash_type:type, date, amount, note });
+    toast('cashEditToast','Saved!', true);
+    setTimeout(()=>{ closeCashEditModal(); loadCash(); }, 900);
+  } catch(e) { toast('cashEditToast','Error: '+e.message, false); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+async function deleteCashRow(id) {
+  if (!confirm('Delete this cash entry? This cannot be undone.')) return;
+  try {
+    await sbDelete(`/rest/v1/cash_on_hand?id=eq.${id}`);
+    loadCash();
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+// Close modals on overlay click
+document.getElementById('editModal').addEventListener('click', function(e){
+  if(e.target===this) closeEditModal();
+});
+document.getElementById('cashEditModal').addEventListener('click', function(e){
+  if(e.target===this) closeCashEditModal();
+});
+
+// ═══════════════════════════════════════════════
+//  HISTORY — with edit/delete buttons
 // ═══════════════════════════════════════════════
 async function loadHistory() {
   const vehicle=document.getElementById('histVehicle').value;
@@ -1194,7 +1369,6 @@ async function loadHistory() {
       getTripRows(vehicle,month,year).catch(()=>[])
     ]);
 
-    // Build trip map: date → { trips, km }
     const tripMap={};
     tripData.forEach(t=>{
       if(!tripMap[t.date]) tripMap[t.date]={trips:0,km:0};
@@ -1250,11 +1424,10 @@ async function loadHistory() {
         const dNet=dE-dX;
         const dl=new Date(day+'T00:00:00').toLocaleDateString('en-SG',{weekday:'short',day:'2-digit',month:'short'});
 
-        // ── Only show trip pill if trip data exists for this exact date ──
-        const td = tripMap[day];
-        const tripPill = td
-          ? `<span class="trip-inline-pill">🗺️ ${td.trips} trip${td.trips!==1?'s':''} · ${Number(td.km).toFixed(1)} km</span>`
-          : '';
+        const td=tripMap[day];
+        const tripPill=td
+          ?`<span class="trip-inline-pill">🗺️ ${td.trips} trip${td.trips!==1?'s':''} · ${Number(td.km).toFixed(1)} km</span>`
+          :'';
 
         html+=`<div class="day-card">
           <div class="day-header" onclick="const b=this.nextElementSibling;b.style.display=b.style.display==='none'?'block':'none'">
@@ -1266,14 +1439,35 @@ async function loadHistory() {
             </div>
           </div>
           <div class="day-body">
-            ${earn.map(e=>`<div class="entry-row"><div class="dot" style="background:var(--green)"></div>
-              <div class="entry-info"><div class="entry-meta"><span style="font-size:11px;color:var(--muted)">Earning</span>${clientBadge(detectClient(e.note))}</div>
-              ${e.note?`<div class="entry-note">${e.note}</div>`:''}</div>
-              <span class="entry-amt" style="color:var(--green)">${fmt(e.amount)}</span></div>`).join('')}
-            ${exp.map(e=>`<div class="entry-row"><div class="dot" style="background:var(--red)"></div>
-              <div class="entry-info"><div class="entry-meta"><span class="exp-tag">${e.expense_type}</span></div>
-              ${e.note?`<div class="entry-note">${e.note}</div>`:''}</div>
-              <span class="entry-amt" style="color:var(--red)">-${fmt(e.amount)}</span></div>`).join('')}
+            ${earn.map(e=>{
+              const rowData = JSON.stringify({id:e.id,date:e.date,amount:e.amount,note:e.note||''}).replace(/'/g,"&#39;");
+              return `<div class="entry-row">
+                <div class="dot" style="background:var(--green)"></div>
+                <div class="entry-info">
+                  <div class="entry-meta"><span style="font-size:11px;color:var(--muted)">Earning</span>${clientBadge(detectClient(e.note))}</div>
+                  ${e.note?`<div class="entry-note">${e.note}</div>`:''}
+                </div>
+                <span class="entry-amt" style="color:var(--green)">${fmt(e.amount)}</span>
+                <div class="row-actions">
+                  <button class="btn-edit-row" onclick='openEditModal("earnings",${JSON.stringify({id:e.id,date:e.date,amount:e.amount,note:e.note||''})})'>✏️</button>
+                  <button class="btn-del-row" onclick="deleteEntryRow('earnings','${e.id}')">🗑</button>
+                </div>
+              </div>`;
+            }).join('')}
+            ${exp.map(e=>{
+              return `<div class="entry-row">
+                <div class="dot" style="background:var(--red)"></div>
+                <div class="entry-info">
+                  <div class="entry-meta"><span class="exp-tag">${e.expense_type}</span></div>
+                  ${e.note?`<div class="entry-note">${e.note}</div>`:''}
+                </div>
+                <span class="entry-amt" style="color:var(--red)">-${fmt(e.amount)}</span>
+                <div class="row-actions">
+                  <button class="btn-edit-row" onclick='openEditModal("expenses",${JSON.stringify({id:e.id,date:e.date,amount:e.amount,note:e.note||'',expense_type:e.expense_type||''})})'>✏️</button>
+                  <button class="btn-del-row" onclick="deleteEntryRow('expenses','${e.id}')">🗑</button>
+                </div>
+              </div>`;
+            }).join('')}
           </div>
         </div>`;
       });
@@ -1441,7 +1635,7 @@ function renderClientTrend(year,md) {
 }
 
 // ═══════════════════════════════════════════════
-//  CASH ON HAND
+//  CASH ON HAND — with edit/delete buttons
 // ═══════════════════════════════════════════════
 const CASH_TYPE_STYLE={
   'Petty Cash':{color:'var(--kaira)',bg:'#f59e0b22',border:'#f59e0b44'},
@@ -1513,7 +1707,14 @@ async function loadCash() {
           </div>
           ${r.note?`<div class="cash-note">${r.note}</div>`:''}
         </div>
-        <div class="cash-amt-col"><div class="cash-amt">${fmt(r.amount)}</div><div class="cash-running">Cumul: ${fmt(r.running)}</div></div>
+        <div class="cash-amt-col">
+          <div class="cash-amt">${fmt(r.amount)}</div>
+          <div class="cash-running">Cumul: ${fmt(r.running)}</div>
+          <div style="display:flex;gap:4px;justify-content:flex-end;margin-top:5px">
+            <button class="btn-edit-row" onclick='openCashEditModal(${JSON.stringify({id:r.id,cash_type:r.cash_type,date:r.date,amount:r.amount,note:r.note||''})})'>✏️</button>
+            <button class="btn-del-row" onclick="deleteCashRow('${r.id}')">🗑</button>
+          </div>
+        </div>
       </div>`;
     });
     entriesEl.innerHTML=html;
@@ -1521,10 +1722,8 @@ async function loadCash() {
 }
 
 // ═══════════════════════════════════════════════
-//  TRIPS TAB — Entry + View
+//  TRIPS TAB
 // ═══════════════════════════════════════════════
-
-/** Save a new trip log entry */
 async function saveTripEntry() {
   const vehicle = document.getElementById('tripEntryVehicle').value;
   const date    = document.getElementById('tripEntryDate').value;
@@ -1552,9 +1751,7 @@ async function saveTripEntry() {
     document.getElementById('tripEntryKm').value    = '';
     document.getElementById('tripEntryNote').value  = '';
 
-    // Sync the filter selects and reload the table
     document.getElementById('tripsVehicle').value = vehicle;
-    // Set month/year selects to match the entered date
     const [y,m] = date.split('-');
     document.getElementById('tripsYear').value  = y;
     document.getElementById('tripsMonth').value = parseInt(m)-1;
@@ -1565,7 +1762,6 @@ async function saveTripEntry() {
   btn.disabled = false; btn.textContent = 'Save Trip Log';
 }
 
-/** Delete a trip entry by id and reload */
 async function deleteTripEntry(id) {
   if (!confirm('Delete this trip entry?')) return;
   try {
@@ -1594,45 +1790,20 @@ async function loadTrips() {
     const totExp   = expenses.reduce((s,e)=>s+Number(e.amount),0);
     const avgKmPerTrip = totTrips > 0 ? (totKm/totTrips).toFixed(1) : '—';
 
-    // ── Fuel stats ──
-const fuelExp   = expenses.filter(e => e.expense_type === 'Fuel');
-//const fuelExp = expenses.filter(e => e.expense_type === 'Fuel' || e.expense_type === 'CASH CARD');
-const totFuel   = fuelExp.reduce((s, e) => s + Number(e.amount), 0);
-const costPerKm = totKm > 0 && totFuel > 0 ? (totFuel / totKm).toFixed(3) : null;
-const earnPerKm = totKm > 0 && totEarn > 0 ? (totEarn / totKm).toFixed(2) : null;
+    const fuelExp   = expenses.filter(e => e.expense_type === 'Fuel');
+    const totFuel   = fuelExp.reduce((s, e) => s + Number(e.amount), 0);
+    const costPerKm = totKm > 0 && totFuel > 0 ? (totFuel / totKm).toFixed(3) : null;
+    const earnPerKm = totKm > 0 && totEarn > 0 ? (totEarn / totKm).toFixed(2) : null;
 
-let html = `
+    let html = `
 <div class="stat-row">
-  <div class="stat-card" style="border-color:#06b6d433">
-    <div class="slabel">Total Trips</div>
-    <div class="sval" style="color:#06b6d4">${totTrips || '—'}</div>
-  </div>
-  <div class="stat-card" style="border-color:#06b6d433">
-    <div class="slabel">Total KM</div>
-    <div class="sval" style="color:#06b6d4">${totKm ? totKm.toFixed(1)+' km' : '—'}</div>
-  </div>
-  <div class="stat-card" style="border-color:#a78bfa33">
-    <div class="slabel">Avg KM / Trip</div>
-    <div class="sval" style="color:#a78bfa">${avgKmPerTrip}</div>
-  </div>
-  <div class="stat-card" style="border-color:#ef444433">
-    <div class="slabel">Fuel Cost</div>
-    <div class="sval" style="color:var(--red)">${totFuel ? fmt(totFuel) : '—'}</div>
-    <div class="ssub">${fuelExp.length} entr${fuelExp.length===1?'y':'ies'}</div>
-  </div>
-  <div class="stat-card" style="border-color:#ef444466">
-    <div class="slabel">Cost / KM</div>
-    <div class="sval" style="color:var(--red)">${costPerKm ? 'S$ '+costPerKm : '—'}</div>
-    <div class="ssub">${earnPerKm ? `S$ ${earnPerKm} earned/km` : 'log KM + fuel to see'}</div>
-  </div>
-  <div class="stat-card" style="border-color:#22c55e33">
-    <div class="slabel">Earnings</div>
-    <div class="sval" style="color:var(--green)">${fmt(totEarn)}</div>
-  </div>
-  <div class="stat-card" style="border-color:#ef444433">
-    <div class="slabel">Total Expenses</div>
-    <div class="sval" style="color:var(--red)">${fmt(totExp)}</div>
-  </div>
+  <div class="stat-card" style="border-color:#06b6d433"><div class="slabel">Total Trips</div><div class="sval" style="color:#06b6d4">${totTrips || '—'}</div></div>
+  <div class="stat-card" style="border-color:#06b6d433"><div class="slabel">Total KM</div><div class="sval" style="color:#06b6d4">${totKm ? totKm.toFixed(1)+' km' : '—'}</div></div>
+  <div class="stat-card" style="border-color:#a78bfa33"><div class="slabel">Avg KM / Trip</div><div class="sval" style="color:#a78bfa">${avgKmPerTrip}</div></div>
+  <div class="stat-card" style="border-color:#ef444433"><div class="slabel">Fuel Cost</div><div class="sval" style="color:var(--red)">${totFuel ? fmt(totFuel) : '—'}</div><div class="ssub">${fuelExp.length} entr${fuelExp.length===1?'y':'ies'}</div></div>
+  <div class="stat-card" style="border-color:#ef444466"><div class="slabel">Cost / KM</div><div class="sval" style="color:var(--red)">${costPerKm ? 'S$ '+costPerKm : '—'}</div><div class="ssub">${earnPerKm ? `S$ ${earnPerKm} earned/km` : 'log KM + fuel to see'}</div></div>
+  <div class="stat-card" style="border-color:#22c55e33"><div class="slabel">Earnings</div><div class="sval" style="color:var(--green)">${fmt(totEarn)}</div></div>
+  <div class="stat-card" style="border-color:#ef444433"><div class="slabel">Total Expenses</div><div class="sval" style="color:var(--red)">${fmt(totExp)}</div></div>
 </div>`;
     if (!trips.length) {
       html += `<div class="section-card" style="text-align:center;color:var(--muted);padding:40px">
@@ -1644,7 +1815,6 @@ let html = `
       return;
     }
 
-    // ── Trip log table with delete ──
     html += `
     <div class="section-card" style="padding:0;overflow:hidden">
       <div style="padding:13px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -1922,6 +2092,10 @@ function initApp(){
   document.getElementById('cashDate').value=todayStr();
   document.getElementById('tripEntryDate').value=todayStr();
   populateDateSelects();
+  if (localStorage.getItem('mode') === 'day') {
+    document.body.classList.add('day');
+    document.getElementById('modeBtn').textContent = '🌙 Night';
+  }
   (async()=>{
     await loadVehiclesFromDB();
     loadDashboard();
@@ -1932,7 +2106,6 @@ function initApp(){
 //  SALARY CALCULATOR
 // ═══════════════════════════════════════════════
 var _scData={cashAdj:0,cashDir:'zero'};
-function scFmt(n){'S$ '+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function scInjectSettlement(diff){
   _scData.cashAdj=Math.abs(diff); _scData.cashDir=diff>0?'deduct':diff<0?'add':'zero';
   const dispEl=document.getElementById('sc_cash_display');
@@ -2013,16 +2186,11 @@ function scCalc(){
   document.getElementById('sc_final_box').style.borderColor=final>=0?'#22c55e44':'#ef444433';
   document.getElementById('sc_breakdown').style.display='block';
 }
+
 function toggleMode() {
   const isDay = document.body.classList.toggle('day');
   document.getElementById('modeBtn').textContent = isDay ? '🌙 Night' : '☀️ Day';
   localStorage.setItem('mode', isDay ? 'day' : 'night');
-}
-
-// Remember preference on load — add inside initApp():
-if (localStorage.getItem('mode') === 'day') {
-  document.body.classList.add('day');
-  document.getElementById('modeBtn').textContent = '🌙 Night';
 }
 </script>
 </body>
